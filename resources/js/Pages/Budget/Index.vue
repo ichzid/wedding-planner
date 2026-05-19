@@ -144,7 +144,7 @@
 
     <!-- Modal -->
     <Teleport to="body">
-      <div v-if="showModal" class="modal-backdrop" @click.self="closeModal">
+      <div v-if="showModal" class="modal-backdrop">
         <div class="modal-box">
           <div class="modal-header">
             <h3 class="modal-title">{{ editItem ? 'Edit Budget' : 'Tambah Budget' }}</h3>

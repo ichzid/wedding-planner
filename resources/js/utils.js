@@ -113,7 +113,7 @@ export function confirmDeleteDialog(onConfirm) {
 
   const close = () => overlay.remove();
 
-  overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+  // overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
   box.querySelector('#dlg-cancel').addEventListener('click', close);
   box.querySelector('#dlg-confirm').addEventListener('click', () => {
     close();
