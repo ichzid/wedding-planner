@@ -36,6 +36,10 @@
           <i class="fa-solid fa-file-contract nav-icon"></i>
           <span>Dokumen KUA</span>
         </Link>
+        <Link :href="route('tamu.index')" class="nav-link" :class="{ 'nav-link--active': isRoute('tamu.index') }">
+          <i class="fa-solid fa-users nav-icon"></i>
+          <span>Daftar Tamu</span>
+        </Link>
       </nav>
     </aside>
 
@@ -96,6 +100,7 @@ const routeMap = {
   'budget.index': 'Wedding Budget',
   'seserahan.index': 'List Seserahan',
   'dokumen-kua.index': 'Dokumen KUA',
+  'tamu.index': 'Daftar Tamu',
 };
 
 const pageTitle = computed(() => {

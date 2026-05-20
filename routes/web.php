@@ -6,6 +6,7 @@ use App\Http\Controllers\ChecklistController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\SeserahanController;
 use App\Http\Controllers\KuaDocumentController;
+use App\Http\Controllers\GuestController;
 
 Route::get('/', fn() => redirect('/dashboard'));
 
@@ -26,3 +27,6 @@ Route::patch('/seserahan/{seserahan}/toggle', [SeserahanController::class, 'togg
 Route::resource('dokumen-kua', KuaDocumentController::class)->only(['index','store','update','destroy']);
 Route::patch('/dokumen-kua/{kuaDocument}/toggle-cpw', [KuaDocumentController::class, 'toggleCpw'])->name('kua.toggle-cpw');
 Route::patch('/dokumen-kua/{kuaDocument}/toggle-cpp', [KuaDocumentController::class, 'toggleCpp'])->name('kua.toggle-cpp');
+
+// Daftar Tamu
+Route::resource('tamu', GuestController::class)->only(['index','store','update','destroy']);

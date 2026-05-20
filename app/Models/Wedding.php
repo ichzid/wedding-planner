@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Carbon\Carbon;
+use App\Models\WeddingGuest;
 
 class Wedding extends Model
 {
@@ -39,6 +40,11 @@ class Wedding extends Model
     public function kuaDocuments(): HasMany
     {
         return $this->hasMany(KuaDocument::class)->orderBy('no');
+    }
+
+    public function guests(): HasMany
+    {
+        return $this->hasMany(WeddingGuest::class)->orderBy('no');
     }
 
     public function getCountdownAttribute(): int

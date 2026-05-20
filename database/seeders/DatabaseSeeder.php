@@ -8,6 +8,7 @@ use App\Models\WeddingBudget;
 use App\Models\SeserahanItem;
 use App\Models\WeddingChecklist;
 use App\Models\KuaDocument;
+use App\Models\WeddingGuest;
 
 class DatabaseSeeder extends Seeder
 {
@@ -151,6 +152,46 @@ class DatabaseSeeder extends Seeder
                 'cpp_status'  => $k[3],
                 'biaya'       => $k[4],
                 'catatan'     => $k[5],
+            ]);
+        }
+
+        // ── DAFTAR TAMU ────────────────────────────────────────────────────
+        $guests = [
+            // Pihak CPW (Triana)
+            [1,  'Ibu Hartini',         'cpw', 'hadir',         'Ibu kandung CPW'],
+            [2,  'Bapak Suryono',       'cpw', 'hadir',         'Ayah kandung CPW'],
+            [3,  'Dini Permatasari',    'cpw', 'hadir',         'Kakak CPW'],
+            [4,  'Reza Firmansyah',     'cpw', 'sudah_dikirim', 'Sepupu CPW'],
+            [5,  'Lia Anggraini',       'cpw', 'sudah_dikirim', 'Sahabat SMA'],
+            [6,  'Putri Rahayu',        'cpw', 'sudah_dikirim', 'Teman kuliah'],
+            [7,  'Amel Fitriani',       'cpw', 'belum_dikirim', 'Teman kuliah'],
+            [8,  'Sari Dewi',           'cpw', 'sudah_dikirim', 'Teman kantor'],
+            [9,  'Keluarga Pak Wahyu',  'cpw', 'belum_dikirim', 'Tetangga'],
+            [10, 'Bu Tati & Keluarga',  'cpw', 'belum_dikirim', 'Tante CPW'],
+            // Pihak CPP (Ihmal)
+            [11, 'Ibu Rosyidah',        'cpp', 'hadir',         'Ibu kandung CPP'],
+            [12, 'Bapak Mahmud',        'cpp', 'hadir',         'Ayah kandung CPP'],
+            [13, 'Aldi Maulana',        'cpp', 'hadir',         'Abang CPP'],
+            [14, 'Fahri Nugroho',       'cpp', 'sudah_dikirim', 'Sepupu CPP'],
+            [15, 'Bagas Saputra',       'cpp', 'sudah_dikirim', 'Sahabat SMA'],
+            [16, 'Dika Pratama',        'cpp', 'sudah_dikirim', 'Teman kuliah'],
+            [17, 'Rizky Ramadhan',      'cpp', 'sudah_dikirim', 'Teman kantor'],
+            [18, 'Hendra Wijaya',       'cpp', 'tidak_hadir',   'Teman kuliah - LN'],
+            [19, 'Om Ruslan & Keluarga','cpp', 'belum_dikirim', 'Paman CPP'],
+            [20, 'Keluarga Pak Joko',   'cpp', 'belum_dikirim', 'Tetangga CPP'],
+            // Umum
+            [21, 'Rekan Kerja Tim A',   'umum', 'belum_dikirim', 'Kolega kantor'],
+            [22, 'Rekan Kerja Tim B',   'umum', 'belum_dikirim', 'Kolega kantor'],
+        ];
+
+        foreach ($guests as $g) {
+            WeddingGuest::create([
+                'wedding_id' => $wedding->id,
+                'no'         => $g[0],
+                'nama_tamu'  => $g[1],
+                'pihak'      => $g[2],
+                'status'     => $g[3],
+                'catatan'    => $g[4],
             ]);
         }
     }
