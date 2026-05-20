@@ -8,17 +8,17 @@
         <h1 class="page-title">Checklist Pernikahan</h1>
         <p class="page-sub">{{ doneCount }}/{{ totalCount }} tugas selesai · {{ progressPct }}%</p>
       </div>
-      <button class="btn btn--dark" @click="openCreate">
+      <button class="btn btn--primary" @click="openCreate">
         <i class="fa-solid fa-plus fa-xs"></i> Tambah
       </button>
     </div>
 
     <!-- Progress bar -->
-    <div class="card" style="padding:16px 20px;margin-bottom:18px;display:flex;align-items:center;gap:14px">
+    <div class="card" style="padding:16px var(--space-xl);margin-bottom:var(--space-xl);display:flex;align-items:center;gap:14px">
       <div style="flex:1">
         <div class="prog-track"><div class="prog-fill" :style="{ width: progressPct + '%' }"></div></div>
       </div>
-      <span style="font-size:13px;font-weight:700;color:var(--ink-700);white-space:nowrap">{{ progressPct }}%</span>
+      <span style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap">{{ progressPct }}%</span>
     </div>
 
     <!-- Toolbar -->
@@ -62,10 +62,10 @@
             <p v-if="item.detail" class="checklist-detail">{{ item.detail }}</p>
           </div>
           <div class="checklist-actions">
-            <button class="btn btn--icon btn--ghost" @click="openEdit(item)">
+            <button class="btn btn--icon btn--ghost" title="Edit" @click="openEdit(item)">
               <i class="fa-solid fa-pen fa-xs"></i>
             </button>
-            <button class="btn btn--icon btn--danger-ghost" @click="confirmDelete(item)">
+            <button class="btn btn--icon btn--danger-ghost" title="Hapus" @click="confirmDelete(item)">
               <i class="fa-solid fa-trash fa-xs"></i>
             </button>
           </div>
@@ -73,10 +73,14 @@
       </div>
     </div>
 
+    <!-- Empty state -->
     <div v-if="!Object.keys(groupedChecklists).length" class="card">
       <div class="empty-state">
         <i class="fa-solid fa-list-check empty-state__icon"></i>
-        <p class="empty-state__text">Belum ada checklist</p>
+        <p class="empty-state__text">Belum ada checklist pernikahan. Yuk, mulai rencanakan persiapanmu!</p>
+        <button class="btn btn--primary" @click="openCreate">
+          <i class="fa-solid fa-plus fa-xs"></i> Tambah Checklist Pertama
+        </button>
       </div>
     </div>
 
@@ -99,18 +103,18 @@
               </select>
               <p v-if="errors.bulan_range" class="form-error">{{ errors.bulan_range }}</p>
             </div>
-            <div style="margin-top:12px">
+            <div style="margin-top:var(--space-md)">
               <label class="form-label">Persiapan *</label>
               <input v-model="form.persiapan" type="text" required class="form-input" placeholder="Booking venue...">
               <p v-if="errors.persiapan" class="form-error">{{ errors.persiapan }}</p>
             </div>
-            <div style="margin-top:12px">
+            <div style="margin-top:var(--space-md)">
               <label class="form-label">Detail</label>
               <textarea v-model="form.detail" rows="2" class="form-input" placeholder="Detail tambahan..."></textarea>
             </div>
-            <div class="modal-footer" style="margin-top:16px;padding:0">
+            <div class="modal-footer" style="margin-top:var(--space-lg);padding:0">
               <button type="button" class="btn btn--outline" style="flex:1;justify-content:center" @click="closeModal">Batal</button>
-              <button type="submit" class="btn btn--dark" style="flex:1;justify-content:center" :disabled="saving">
+              <button type="submit" class="btn btn--primary" style="flex:1;justify-content:center" :disabled="saving">
                 <i v-if="saving" class="fa-solid fa-spinner fa-spin fa-xs"></i>
                 {{ saving ? 'Menyimpan...' : 'Simpan' }}
               </button>
@@ -130,11 +134,10 @@ import AppLayout from '@/Layouts/AppLayout.vue';
 import { showToast, confirmDeleteDialog } from '@/utils.js';
 
 const props = defineProps({
-  checklists: Object,   // grouped by bulan_range from server (but we re-group in frontend)
+  checklists: Object,
   bulanOptions: Array,
 });
 
-// Flatten the grouped data from server
 const allItems = computed(() => {
   const items = [];
   for (const group of Object.values(props.checklists)) {
@@ -238,46 +241,46 @@ function confirmDelete(item) {
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-sm);
   flex-wrap: wrap;
-  margin-bottom: 16px;
+  margin-bottom: var(--space-xl);
 }
 .toolbar__search { position: relative; flex: 1; min-width: 180px; }
-.search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--ink-400); font-size: 12px; pointer-events: none; }
+.search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 12px; pointer-events: none; }
 .search-input { padding-left: 30px; }
 .toolbar__select { max-width: 160px; }
 
-.group-section { margin-bottom: 16px; }
+.group-section { margin-bottom: var(--space-lg); }
 .group-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2px 8px;
+  padding: 0 2px var(--space-sm);
 }
 .group-label {
   font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--ink-500);
+  color: var(--text-muted);
 }
 .group-count {
   font-size: 11.5px;
-  color: var(--ink-400);
+  color: var(--text-dim);
   font-weight: 600;
 }
 
 .checklist-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--ink-100);
-  transition: background 0.1s;
+  gap: var(--space-md);
+  padding: 14px 18px;
+  border-bottom: 1px solid #f5ece8;
+  transition: background 0.15s;
 }
 .checklist-row:last-child { border-bottom: none; }
-.checklist-row:hover { background: var(--ink-50); }
-.checklist-row--done { background: var(--ink-50); }
+.checklist-row:hover { background: #fdf9f6; }
+.checklist-row--done { background: var(--rose-pale); }
 
 .check-btn {
   background: none;
@@ -287,25 +290,25 @@ function confirmDelete(item) {
   flex-shrink: 0;
   font-size: 20px;
   line-height: 1;
-  transition: transform 0.1s;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.check-btn:hover { transform: scale(1.1); }
-.check-done { color: var(--status-ok-text); }
-.check-pending { color: var(--ink-300); }
+.check-btn:hover { transform: scale(1.15); }
+.check-done { color: var(--ok-text); }
+.check-pending { color: var(--text-dim); }
 
 .checklist-content { flex: 1; min-width: 0; }
 .checklist-task {
   font-size: 13.5px;
   font-weight: 500;
-  color: var(--ink-800);
+  color: var(--text);
 }
 .checklist-task--done {
   text-decoration: line-through;
-  color: var(--ink-400);
+  color: var(--text-dim);
 }
 .checklist-detail {
   font-size: 12px;
-  color: var(--ink-400);
+  color: var(--text-muted);
   margin-top: 2px;
 }
 
@@ -313,8 +316,5 @@ function confirmDelete(item) {
   display: flex;
   gap: 2px;
   flex-shrink: 0;
-  opacity: 0;
-  transition: opacity 0.15s;
 }
-.checklist-row:hover .checklist-actions { opacity: 1; }
 </style>

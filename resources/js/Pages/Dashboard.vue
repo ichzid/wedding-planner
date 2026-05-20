@@ -2,15 +2,33 @@
   <AppLayout>
     <Head title="Dashboard" />
 
-    <!-- Page Header -->
-    <div class="page-header">
-      <h1 class="page-title">Dashboard</h1>
-      <p class="page-sub">Ringkasan persiapan pernikahan Anda.</p>
+    <!-- Greeting Card -->
+    <div class="greeting-card card">
+      <div class="greeting-card__inner">
+        <div class="greeting-card__text">
+          <h1 class="greeting-card__title">{{ greetingText }}</h1>
+          <p class="greeting-card__sub">Yuk, lanjutkan persiapan pernikahan impianmu ✨</p>
+          <p v-if="countdownText" class="greeting-card__countdown">
+            <i class="fa-solid fa-heart"></i> {{ countdownText }}
+          </p>
+        </div>
+        <div class="quick-actions">
+          <Link :href="route('checklist.index')" class="btn btn--primary btn--sm">
+            <i class="fa-solid fa-plus fa-xs"></i> Checklist
+          </Link>
+          <Link :href="route('budget.index')" class="btn btn--outline btn--sm">
+            <i class="fa-solid fa-plus fa-xs"></i> Budget
+          </Link>
+          <Link :href="route('seserahan.index')" class="btn btn--outline btn--sm">
+            <i class="fa-solid fa-plus fa-xs"></i> Seserahan
+          </Link>
+        </div>
+      </div>
     </div>
 
     <!-- Stat Cards -->
     <div class="stats-grid">
-      <Link :href="route('checklist.index')" class="stat-card stat-card--link">
+      <Link :href="route('checklist.index')" class="stat-card stat-card--link stat-card--pink">
         <div class="stat-card__header">
           <div class="stat-card__icon">
             <i class="fa-solid fa-list-check"></i>
@@ -24,7 +42,7 @@
         </div>
       </Link>
 
-      <Link :href="route('budget.index')" class="stat-card stat-card--link">
+      <Link :href="route('budget.index')" class="stat-card stat-card--link stat-card--peach">
         <div class="stat-card__header">
           <div class="stat-card__icon">
             <i class="fa-solid fa-wallet"></i>
@@ -38,7 +56,7 @@
         </div>
       </Link>
 
-      <Link :href="route('seserahan.index')" class="stat-card stat-card--link">
+      <Link :href="route('seserahan.index')" class="stat-card stat-card--link stat-card--lavender">
         <div class="stat-card__header">
           <div class="stat-card__icon">
             <i class="fa-solid fa-gift"></i>
@@ -49,7 +67,7 @@
         <p class="stat-card__label">Seserahan Dibeli</p>
       </Link>
 
-      <Link :href="route('dokumen-kua.index')" class="stat-card stat-card--link">
+      <Link :href="route('dokumen-kua.index')" class="stat-card stat-card--link stat-card--sage">
         <div class="stat-card__header">
           <div class="stat-card__icon">
             <i class="fa-solid fa-file-contract"></i>
@@ -85,7 +103,7 @@
             <p class="budget-figure__value budget-figure__value--muted">{{ formatRp(props.totalEstimasi - props.totalAktual) }}</p>
           </div>
         </div>
-        <div class="prog-track mt-4">
+        <div class="prog-track mx-4 mt-4">
           <div class="prog-fill" :style="{ width: props.progressBudget + '%' }"></div>
         </div>
         <p class="prog-label">{{ props.progressBudget }}% terbayar</p>
@@ -118,6 +136,7 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
 import AppLayout from '@/Layouts/AppLayout.vue';
@@ -137,6 +156,27 @@ const props = defineProps({
   doneCpw: Number,
   doneCpp: Number,
   budgetByKategori: Object,
+  weddingDate: { type: String, default: '' },
+});
+
+const greetingText = computed(() => {
+  const hour = new Date().getHours();
+  if (hour >= 4 && hour < 10) return 'Selamat Pagi, Calon Pengantin 🌅';
+  if (hour >= 10 && hour < 14) return 'Selamat Siang, Calon Pengantin ☀️';
+  if (hour >= 14 && hour < 18) return 'Selamat Sore, Calon Pengantin 🌤️';
+  return 'Selamat Malam, Calon Pengantin 🌙';
+});
+
+const countdownText = computed(() => {
+  const wd = props.weddingDate;
+  if (!wd) return '';
+  const target = new Date(wd);
+  if (isNaN(target.getTime())) return '';
+  const now = new Date();
+  const diff = target.getTime() - now.getTime();
+  if (diff <= 0) return 'Hari bahagia telah tiba! 🎉💍';
+  const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+  return `H-${days} hari menuju hari bahagia 💍`;
 });
 
 function formatRp(n) {
@@ -157,24 +197,71 @@ function getPct(data) {
 </script>
 
 <style scoped>
-/* Stats grid */
+/* === GREETING CARD === */
+.greeting-card {
+  margin-bottom: var(--space-2xl);
+  overflow: hidden;
+  background: linear-gradient(135deg, #fffdfb 0%, #faf0e8 100%);
+  border: 1px solid var(--rose-light);
+}
+.greeting-card__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-xl);
+  padding: var(--space-xl) var(--space-2xl);
+  flex-wrap: wrap;
+}
+.greeting-card__title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+.greeting-card__sub {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.greeting-card__countdown {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--rose);
+  margin-top: var(--space-sm);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.greeting-card__countdown i {
+  color: #d48b8b;
+}
+
+.quick-actions {
+  display: flex;
+  gap: var(--space-sm);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+
+/* === STATS GRID === */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-  margin-bottom: 20px;
+  gap: var(--space-lg);
+  margin-bottom: var(--space-2xl);
 }
 @media (min-width: 768px) {
   .stats-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
-/* Stat card */
+/* === STAT CARD === */
 .stat-card {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 18px;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  padding: var(--space-xl);
+  transition: all 0.25s ease;
 }
 .stat-card--link {
   text-decoration: none;
@@ -182,9 +269,17 @@ function getPct(data) {
   cursor: pointer;
 }
 .stat-card--link:hover {
-  border-color: var(--ink-300);
-  box-shadow: var(--shadow-sm);
+  border-color: var(--rose-light);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
 }
+
+/* Per-color stat card backgrounds */
+.stat-card--pink    { background: var(--stat-pink); border-color: #f5d8df; }
+.stat-card--peach   { background: var(--stat-peach); border-color: #f5e4d0; }
+.stat-card--lavender { background: var(--stat-lavender); border-color: #e3ddf5; }
+.stat-card--sage    { background: var(--stat-sage); border-color: #d4e8da; }
+
 .stat-card__header {
   display: flex;
   align-items: center;
@@ -192,130 +287,133 @@ function getPct(data) {
   margin-bottom: 14px;
 }
 .stat-card__icon {
-  width: 32px;
-  height: 32px;
-  background: var(--ink-100);
-  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  background: rgba(196,149,106,0.15);
+  border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--ink-500);
-  font-size: 13px;
-  transition: background 0.15s, color 0.15s;
+  color: var(--rose);
+  font-size: 14px;
+  transition: all 0.25s ease;
 }
 .stat-card--link:hover .stat-card__icon {
-  background: var(--ink-900);
+  background: var(--rose);
   color: #fff;
 }
 .stat-card__arrow {
-  color: var(--ink-200);
+  color: var(--text-dim);
   font-size: 11px;
-  transition: color 0.15s;
+  transition: color 0.2s;
 }
-.stat-card--link:hover .stat-card__arrow { color: var(--ink-500); }
+.stat-card--link:hover .stat-card__arrow { color: var(--rose); }
 .stat-card__value {
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 800;
-  color: var(--ink-900);
+  color: var(--text);
   letter-spacing: -0.03em;
   line-height: 1;
 }
 .stat-card__total {
   font-size: 16px;
   font-weight: 500;
-  color: var(--ink-300);
-  margin-left: 1px;
+  color: var(--text-dim);
+  margin-left: 2px;
 }
 .stat-card__label {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--ink-400);
-  margin-top: 5px;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-top: 6px;
+  text-transform: none;
+  letter-spacing: 0.02em;
 }
 
-/* Dashboard bottom row */
+/* === DASHBOARD BOTTOM ROW === */
 .dashboard-bottom {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 14px;
+  gap: var(--space-lg);
 }
 @media (min-width: 768px) {
   .dashboard-bottom { grid-template-columns: 1fr 1fr; }
 }
 
-/* Section header */
+/* === SECTION HEADER (scoped override) === */
 .section-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px 18px 14px;
+  padding: var(--space-lg) var(--space-xl);
   border-bottom: 1px solid var(--border);
 }
 .section-title {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: var(--ink-800);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text);
   letter-spacing: -0.01em;
 }
 
-/* Budget summary */
+/* === BUDGET SUMMARY === */
 .budget-summary {
   overflow: hidden;
 }
 .budget-figures {
   display: flex;
   gap: 0;
-  padding: 16px 18px 0;
+  padding: var(--space-lg) var(--space-xl) 0;
 }
 .budget-figure {
   flex: 1;
-  padding-right: 16px;
-  border-right: 1px solid var(--ink-100);
-  margin-right: 16px;
+  padding-right: var(--space-lg);
+  border-right: 1px solid var(--border);
+  margin-right: var(--space-lg);
 }
 .budget-figure:last-child {
   border-right: none;
   margin-right: 0;
+  padding-right: 0;
 }
 .budget-figure__label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 600;
-  color: var(--ink-400);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: 0.02em;
   margin-bottom: 4px;
 }
 .budget-figure__value {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
-  color: var(--ink-900);
+  color: var(--text);
   letter-spacing: -0.01em;
 }
-.budget-figure__value--muted { color: var(--ink-500); }
+.budget-figure__value--muted { color: var(--text-muted); }
+
+.mx-4 { margin-left: var(--space-xl); margin-right: var(--space-xl); }
 
 .prog-label {
-  font-size: 11.5px;
-  color: var(--ink-400);
-  margin-top: 6px;
-  padding: 0 18px 18px;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-top: var(--space-sm);
+  padding: 0 var(--space-xl) var(--space-xl);
 }
 
-/* Category card */
+/* === CATEGORY CARD === */
 .kat-card { overflow: hidden; }
-.kat-list { padding: 12px 18px 16px; }
+.kat-list { padding: var(--space-md) var(--space-xl) var(--space-lg); }
 .kat-row {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--ink-100);
+  padding: 9px 0;
+  border-bottom: 1px solid #f5ece8;
 }
 .kat-row:last-child { border-bottom: none; }
 .kat-name {
-  font-size: 12.5px;
-  color: var(--ink-700);
+  font-size: 13px;
+  color: var(--text);
   font-weight: 500;
   width: 120px;
   flex-shrink: 0;
@@ -325,16 +423,16 @@ function getPct(data) {
 }
 .kat-bar-wrap { flex: 1; }
 .kat-amount {
-  font-size: 11.5px;
-  color: var(--ink-500);
+  font-size: 12px;
+  color: var(--text-muted);
   width: 56px;
   text-align: right;
   flex-shrink: 0;
 }
 .kat-pct {
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
-  color: var(--ink-700);
+  color: var(--text);
   width: 36px;
   text-align: right;
   flex-shrink: 0;

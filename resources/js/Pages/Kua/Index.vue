@@ -75,22 +75,20 @@
               <td class="text-right">{{ doc.biaya > 0 ? formatRp(doc.biaya) : '–' }}</td>
               <td class="text-center">
                 <button
-                  class="toggle-btn"
-                  :class="doc.cpw_status ? 'toggle-btn--on' : 'toggle-btn--off'"
+                  class="check-btn"
                   @click="toggleCpw(doc)"
-                  title="Toggle status CPW"
+                  :title="doc.cpw_status ? 'Tandai belum' : 'Tandai selesai'"
                 >
-                  <i :class="doc.cpw_status ? 'fa-solid fa-check' : 'fa-solid fa-xmark'"></i>
+                  <i :class="doc.cpw_status ? 'fa-solid fa-circle-check check-done' : 'fa-regular fa-circle check-pending'"></i>
                 </button>
               </td>
               <td class="text-center">
                 <button
-                  class="toggle-btn"
-                  :class="doc.cpp_status ? 'toggle-btn--on' : 'toggle-btn--off'"
+                  class="check-btn"
                   @click="toggleCpp(doc)"
-                  title="Toggle status CPP"
+                  :title="doc.cpp_status ? 'Tandai belum' : 'Tandai selesai'"
                 >
-                  <i :class="doc.cpp_status ? 'fa-solid fa-check' : 'fa-solid fa-xmark'"></i>
+                  <i :class="doc.cpp_status ? 'fa-solid fa-circle-check check-done' : 'fa-regular fa-circle check-pending'"></i>
                 </button>
               </td>
               <td class="text-muted">{{ doc.catatan || '–' }}</td>
@@ -258,19 +256,16 @@ function confirmDelete(doc) {
 
 .row--done td { background: var(--ink-50); }
 
-.toggle-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
+.check-btn {
+  background: none;
   border: none;
   cursor: pointer;
-  font-size: 11px;
-  transition: all 0.15s;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1;
+  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
-.toggle-btn--on  { background: var(--status-ok-bg); color: var(--status-ok-text); }
-.toggle-btn--off { background: var(--ink-100); color: var(--ink-400); }
-.toggle-btn:hover { transform: scale(1.1); }
+.check-btn:hover { transform: scale(1.15); }
+.check-done { color: var(--ok-text); }
+.check-pending { color: var(--text-dim); }
 </style>

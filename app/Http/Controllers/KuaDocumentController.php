@@ -57,7 +57,7 @@ class KuaDocumentController extends Controller
         return redirect()->route('dokumen-kua.index');
     }
 
-    public function update(Request $request, KuaDocument $kuaDocument)
+    public function update(Request $request, KuaDocument $dokumen_kua)
     {
         $data = $request->validate([
             'nama_dokumen' => 'required|string|max:255',
@@ -66,13 +66,13 @@ class KuaDocumentController extends Controller
         ]);
 
         $data['biaya'] = $data['biaya'] ?? 0;
-        $kuaDocument->update($data);
+        $dokumen_kua->update($data);
         return redirect()->route('dokumen-kua.index');
     }
 
-    public function destroy(KuaDocument $kuaDocument)
+    public function destroy(KuaDocument $dokumen_kua)
     {
-        $kuaDocument->delete();
+        $dokumen_kua->delete();
         return redirect()->route('dokumen-kua.index');
     }
 

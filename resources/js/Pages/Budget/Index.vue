@@ -8,7 +8,7 @@
         <h1 class="page-title">Wedding Budget</h1>
         <p class="page-sub">{{ formatRp(totalEstimasi) }} total estimasi · {{ progressPct }}% terbayar</p>
       </div>
-      <button class="btn btn--dark" @click="openCreate">
+      <button class="btn btn--primary" @click="openCreate">
         <i class="fa-solid fa-plus fa-xs"></i> Tambah
       </button>
     </div>
@@ -32,16 +32,11 @@
       </div>
     </div>
 
-    <!-- Toolbar: Search + Filter -->
+    <!-- Toolbar -->
     <div class="toolbar">
       <div class="toolbar__search">
         <i class="fa-solid fa-magnifying-glass search-icon"></i>
-        <input
-          v-model="searchQuery"
-          type="text"
-          placeholder="Cari item atau vendor..."
-          class="form-input search-input"
-        />
+        <input v-model="searchQuery" type="text" placeholder="Cari item atau vendor..." class="form-input search-input" />
       </div>
       <select v-model="filterKategori" class="form-input toolbar__select">
         <option value="">Semua Kategori</option>
@@ -88,9 +83,7 @@
           <tbody>
             <tr v-for="b in filteredBudgets" :key="b.id">
               <td class="mono-text">{{ b.no }}</td>
-              <td>
-                <span class="chip chip--neutral">{{ b.kategori }}</span>
-              </td>
+              <td><span class="chip chip--soft">{{ b.kategori }}</span></td>
               <td>
                 <p class="item-name">{{ b.item }}</p>
                 <p v-if="b.vendor" class="item-sub">{{ b.vendor }}</p>
@@ -123,7 +116,10 @@
               <td colspan="9">
                 <div class="empty-state">
                   <i class="fa-solid fa-wallet empty-state__icon"></i>
-                  <p class="empty-state__text">Belum ada data budget</p>
+                  <p class="empty-state__text">Belum ada data budget. Mulai catat pengeluaran pernikahanmu!</p>
+                  <button class="btn btn--primary" @click="openCreate">
+                    <i class="fa-solid fa-plus fa-xs"></i> Tambah Budget Pertama
+                  </button>
                 </div>
               </td>
             </tr>
@@ -169,19 +165,16 @@
                 </select>
               </div>
             </div>
-
-            <div style="margin-top:12px">
+            <div style="margin-top:var(--space-md)">
               <label class="form-label">Nama Item *</label>
               <input v-model="form.item" type="text" required class="form-input" placeholder="Sewa Gedung Resepsi">
               <p v-if="errors.item" class="form-error">{{ errors.item }}</p>
             </div>
-
-            <div style="margin-top:12px">
+            <div style="margin-top:var(--space-md)">
               <label class="form-label">Vendor</label>
               <input v-model="form.vendor" type="text" class="form-input" placeholder="Nama vendor...">
             </div>
-
-            <div class="form-row-3" style="margin-top:12px">
+            <div class="form-row-3" style="margin-top:var(--space-md)">
               <div>
                 <label class="form-label">Est. Budget (Rp) *</label>
                 <input v-model="form.estimasi_budget" type="number" required min="0" class="form-input">
@@ -195,15 +188,13 @@
                 <input v-model="form.pelunasan" type="number" min="0" class="form-input">
               </div>
             </div>
-
-            <div style="margin-top:12px">
+            <div style="margin-top:var(--space-md)">
               <label class="form-label">Catatan</label>
               <textarea v-model="form.catatan" rows="2" class="form-input"></textarea>
             </div>
-
-            <div class="modal-footer" style="margin-top:16px;padding:0">
+            <div class="modal-footer" style="margin-top:var(--space-lg);padding:0">
               <button type="button" class="btn btn--outline" style="flex:1;justify-content:center" @click="closeModal">Batal</button>
-              <button type="submit" class="btn btn--dark" style="flex:1;justify-content:center" :disabled="saving">
+              <button type="submit" class="btn btn--primary" style="flex:1;justify-content:center" :disabled="saving">
                 <i v-if="saving" class="fa-solid fa-spinner fa-spin fa-xs"></i>
                 {{ saving ? 'Menyimpan...' : 'Simpan' }}
               </button>
@@ -233,7 +224,6 @@ const props = defineProps({
   totalSisa: Number,
 });
 
-// ── Reactive data ───────────────────────────────
 const searchQuery  = ref('');
 const filterKategori = ref('');
 const filterStatus   = ref('');
@@ -256,10 +246,8 @@ const defaultForm = () => ({
 });
 const form = ref(defaultForm());
 
-// ── Computed: filter + sort ─────────────────────
 const filteredBudgets = computed(() => {
   let list = [...props.budgets];
-
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase();
     list = list.filter(b =>
@@ -267,12 +255,8 @@ const filteredBudgets = computed(() => {
       b.vendor?.toLowerCase().includes(q)
     );
   }
-  if (filterKategori.value) {
-    list = list.filter(b => b.kategori === filterKategori.value);
-  }
-  if (filterStatus.value) {
-    list = list.filter(b => b.status === filterStatus.value);
-  }
+  if (filterKategori.value) list = list.filter(b => b.kategori === filterKategori.value);
+  if (filterStatus.value)   list = list.filter(b => b.status === filterStatus.value);
   if (sortBy.value) {
     list.sort((a, b) => {
       let av = a[sortBy.value], bv = b[sortBy.value];
@@ -296,14 +280,13 @@ const progressPct = computed(() => {
   return Math.min(100, Math.round(props.totalAktual / props.totalEstimasi * 100));
 });
 
-// ── Helpers ─────────────────────────────────────
 function formatRp(n) {
   return 'Rp' + Number(n || 0).toLocaleString('id-ID');
 }
 
 function statusChip(s) {
   const map = { belum: 'chip--danger', dp_terbayar: 'chip--warn', lunas: 'chip--ok' };
-  return map[s] || 'chip--neutral';
+  return map[s] || 'chip--soft';
 }
 
 function resetFilters() {
@@ -328,7 +311,6 @@ function sortIcon(field) {
     : 'fa-solid fa-sort-down fa-xs';
 }
 
-// ── CRUD ─────────────────────────────────────────
 function openCreate() {
   editItem.value = null;
   form.value     = defaultForm();
@@ -352,26 +334,21 @@ function openEdit(b) {
   showModal.value = true;
 }
 
-function closeModal() {
-  showModal.value = false;
-}
+function closeModal() { showModal.value = false; }
 
 async function save() {
   saving.value = true;
   errors.value = {};
-
   const payload = {
     ...form.value,
     estimasi_budget: Number(form.value.estimasi_budget) || 0,
     dp:              Number(form.value.dp) || 0,
     pelunasan:       Number(form.value.pelunasan) || 0,
   };
-
   const url = editItem.value
     ? route('budget.update', editItem.value.id)
     : route('budget.store');
   const method = editItem.value ? 'patch' : 'post';
-
   router[method](url, payload, {
     preserveScroll: true,
     onSuccess: () => {
@@ -400,83 +377,67 @@ function confirmDelete(b) {
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(1, 1fr);
-  gap: 12px;
-  margin-bottom: 18px;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
 }
 @media (min-width: 640px) { .summary-grid { grid-template-columns: repeat(3, 1fr); } }
 
-.summary-card { padding: 18px; }
+.summary-card { padding: var(--space-xl); }
 .summary-card__label {
-  font-size: 10.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--ink-400);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: none;
+  letter-spacing: 0.02em;
 }
 .summary-card__value {
   font-size: 22px;
   font-weight: 800;
-  color: var(--ink-900);
+  color: var(--text);
   margin-top: 6px;
   letter-spacing: -0.02em;
 }
-.summary-card__sub { font-size: 11.5px; color: var(--ink-400); margin-top: 4px; }
+.summary-card__sub { font-size: 11.5px; color: var(--text-muted); margin-top: 4px; }
 
 .toolbar {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-sm);
   flex-wrap: wrap;
-  margin-bottom: 14px;
+  margin-bottom: var(--space-lg);
 }
-.toolbar__search {
-  position: relative;
-  flex: 1;
-  min-width: 180px;
-}
+.toolbar__search { position: relative; flex: 1; min-width: 180px; }
 .search-icon {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--ink-400);
-  font-size: 12px;
-  pointer-events: none;
+  position: absolute; left: 10px; top: 50%;
+  transform: translateY(-50%); color: var(--text-dim);
+  font-size: 12px; pointer-events: none;
 }
 .search-input { padding-left: 30px; }
 .toolbar__select { max-width: 160px; }
 
 .sort-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: inherit;
-  font-weight: inherit;
-  color: inherit;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 0;
-  letter-spacing: inherit;
-  text-transform: inherit;
+  background: none; border: none; cursor: pointer;
+  font-size: inherit; font-weight: inherit; color: inherit;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 0; letter-spacing: inherit; text-transform: inherit;
 }
 .sort-btn--right { margin-left: auto; display: flex; }
 
-.mono-text { font-family: monospace; font-size: 11px; color: var(--ink-300); }
-.item-name { font-size: 13.5px; font-weight: 500; color: var(--ink-800); }
-.item-sub  { font-size: 11.5px; color: var(--ink-400); margin-top: 2px; }
+.mono-text { font-family: monospace; font-size: 11px; color: var(--text-dim); }
+.item-name { font-size: 13.5px; font-weight: 500; color: var(--text); }
+.item-sub  { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
 
 .text-right { text-align: right; }
 .fw-600 { font-weight: 600; }
 .fw-700 { font-weight: 700; }
-.text-dark  { color: var(--ink-700); }
-.text-dim   { color: var(--ink-300); }
-.text-danger { color: var(--status-danger-text); }
-.text-ok     { color: var(--status-ok-text); }
+.text-dark  { color: var(--text); }
+.text-dim   { color: var(--text-dim); }
+.text-danger { color: var(--danger-text); }
+.text-ok     { color: var(--ok-text); }
 
 .tfoot-row td {
   padding: 10px 14px;
-  background: var(--ink-50);
+  background: var(--rose-pale);
   border-top: 2px solid var(--border);
   font-size: 13px;
 }
@@ -485,11 +446,11 @@ function confirmDelete(b) {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--ink-500);
+  color: var(--text-muted);
 }
 
-.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
+.form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-md); }
 @media (max-width: 480px) {
   .form-row-2 { grid-template-columns: 1fr; }
   .form-row-3 { grid-template-columns: 1fr; }
