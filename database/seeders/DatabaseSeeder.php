@@ -18,7 +18,7 @@ class DatabaseSeeder extends Seeder
             'user_id'        => 1,
             'nama_cpw'       => 'Triana',
             'nama_cpp'       => 'Ihmal',
-            'tanggal_nikah'  => '2027-06-25',
+            'tanggal_nikah'  => '2027-06-27',
             'lokasi_akad'    => 'Coffeshop xxx',
             'lokasi_resepsi' => 'Coffeshop xxx',
         ]);

@@ -62,11 +62,11 @@
             <p v-if="item.detail" class="checklist-detail">{{ item.detail }}</p>
           </div>
           <div class="checklist-actions">
-            <button class="btn btn--icon btn--ghost" title="Edit" @click="openEdit(item)">
-              <i class="fa-solid fa-pen fa-xs"></i>
+            <button class="btn btn--ghost btn--icon" title="Edit" @click="openEdit(item)" :id="'edit-checklist-'+item.id">
+              <i class="fa-solid fa-pen-to-square" style="font-size:13px;"></i>
             </button>
-            <button class="btn btn--icon btn--danger-ghost" title="Hapus" @click="confirmDelete(item)">
-              <i class="fa-solid fa-trash fa-xs"></i>
+            <button class="btn btn--danger-ghost btn--icon" title="Hapus" @click="confirmDelete(item)" :id="'del-checklist-'+item.id">
+              <i class="fa-solid fa-trash" style="font-size:13px;"></i>
             </button>
           </div>
         </div>

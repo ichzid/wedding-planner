@@ -5,7 +5,7 @@
       <!-- Brand -->
       <div class="sidebar__brand">
         <div class="brand-icon">
-          <i class="fa-solid fa-rings-wedding"></i>
+          <img src="/logo.png" alt="Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: var(--radius-sm);">
         </div>
         <div class="brand-text">
           <span class="brand-title">Wedding Planner</span>
@@ -283,7 +283,6 @@ body {
 .brand-icon {
   width: 36px;
   height: 36px;
-  background: rgba(255,255,255,0.12);
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
@@ -702,7 +701,6 @@ textarea.form-input { resize: none; }
   display: flex;
   gap: var(--space-sm);
   padding: var(--space-lg) var(--space-xl);
-  border-top: 1px solid var(--border);
 }
 
 /* === TOAST === */

@@ -1,5 +1,7 @@
 <template>
-  <div>
+  <AppLayout>
+    <Head title="Daftar Tamu" />
+    <div>
     <!-- Page Header -->
     <div class="page-header">
       <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px;">
@@ -218,13 +220,15 @@
         </div>
       </div>
     </Teleport>
-  </div>
+    </div>
+  </AppLayout>
 </template>
 
 <script setup>
 import { ref, computed } from 'vue';
-import { useForm, router } from '@inertiajs/vue3';
+import { Head, useForm, router } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
+import AppLayout from '@/Layouts/AppLayout.vue';
 
 const props = defineProps({
   guests:    Array,

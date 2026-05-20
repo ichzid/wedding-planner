@@ -1,6 +1,6 @@
 <template>
   <AppLayout>
-    <Head title="Wedding Budget" />
+    <Head title="Budget Pernikahan" />
 
     <!-- Header -->
     <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
@@ -103,11 +103,11 @@
               </td>
               <td>
                 <div style="display:flex;align-items:center;justify-content:center;gap:2px">
-                  <button class="btn btn--icon btn--ghost" title="Edit" @click="openEdit(b)">
-                    <i class="fa-solid fa-pen fa-xs"></i>
+                  <button class="btn btn--ghost btn--icon" title="Edit" @click="openEdit(b)" :id="'edit-budget-'+b.id">
+                    <i class="fa-solid fa-pen-to-square" style="font-size:13px;"></i>
                   </button>
-                  <button class="btn btn--icon btn--danger-ghost" title="Hapus" @click="confirmDelete(b)">
-                    <i class="fa-solid fa-trash fa-xs"></i>
+                  <button class="btn btn--danger-ghost btn--icon" title="Hapus" @click="confirmDelete(b)" :id="'del-budget-'+b.id">
+                    <i class="fa-solid fa-trash" style="font-size:13px;"></i>
                   </button>
                 </div>
               </td>

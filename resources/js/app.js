@@ -5,7 +5,7 @@ import { ZiggyVue } from 'ziggy-js';
 import '../css/app.css';
 
 createInertiaApp({
-    title: (title) => title ? `${title} — Wedding Planner` : 'Wedding Planner',
+    title: (title) => title ? `${title} | Wedding Planner` : 'Wedding Planner',
     resolve: (name) =>
         resolvePageComponent(
             `./Pages/${name}.vue`,

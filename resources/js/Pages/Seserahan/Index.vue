@@ -73,8 +73,8 @@
                 <p class="item-sub">{{ s.kategori }}</p>
               </td>
               <td>
-                <span v-if="s.untuk === 'groom'" class="chip chip--pink">Groom</span>
-                <span v-else-if="s.untuk === 'bride'" class="chip chip--soft">Bride</span>
+                <span v-if="s.untuk === 'groom'" class="chip chip--pink">Mempelai Pria</span>
+                <span v-else-if="s.untuk === 'bride'" class="chip chip--soft">Mempelai Wanita</span>
                 <span v-else class="chip chip--outline">-</span>
               </td>
               <td class="text-right fw-600">{{ s.qty }} {{ s.satuan }}</td>
@@ -87,11 +87,11 @@
               </td>
               <td>
                 <div style="display:flex;align-items:center;justify-content:center;gap:2px">
-                  <button class="btn btn--icon btn--ghost" title="Edit" @click="openEdit(s)">
-                    <i class="fa-solid fa-pen fa-xs"></i>
+                  <button class="btn btn--ghost btn--icon" title="Edit" @click="openEdit(s)" :id="'edit-seserahan-'+s.id">
+                    <i class="fa-solid fa-pen-to-square" style="font-size:13px;"></i>
                   </button>
-                  <button class="btn btn--icon btn--danger-ghost" title="Hapus" @click="confirmDelete(s)">
-                    <i class="fa-solid fa-trash fa-xs"></i>
+                  <button class="btn btn--danger-ghost btn--icon" title="Hapus" @click="confirmDelete(s)" :id="'del-seserahan-'+s.id">
+                    <i class="fa-solid fa-trash" style="font-size:13px;"></i>
                   </button>
                 </div>
               </td>
@@ -146,8 +146,8 @@
               <div>
                 <label class="form-label">Untuk *</label>
                 <select v-model="form.untuk" required class="form-input">
-                  <option value="groom">Groom (CPP)</option>
-                  <option value="bride">Bride (CPW)</option>
+                  <option value="groom">Mempelai Pria</option>
+                  <option value="bride">Mempelai Wanita</option>
                 </select>
                 <p v-if="errors.untuk" class="form-error">{{ errors.untuk }}</p>
               </div>

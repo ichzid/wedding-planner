@@ -94,11 +94,11 @@
               <td class="text-muted">{{ doc.catatan || '–' }}</td>
               <td>
                 <div style="display:flex;align-items:center;justify-content:center;gap:2px">
-                  <button class="btn btn--icon btn--ghost" @click="openEdit(doc)">
-                    <i class="fa-solid fa-pen fa-xs"></i>
+                  <button class="btn btn--ghost btn--icon" title="Edit" @click="openEdit(doc)" :id="'edit-kua-'+doc.id">
+                    <i class="fa-solid fa-pen-to-square" style="font-size:13px;"></i>
                   </button>
-                  <button class="btn btn--icon btn--danger-ghost" @click="confirmDelete(doc)">
-                    <i class="fa-solid fa-trash fa-xs"></i>
+                  <button class="btn btn--danger-ghost btn--icon" title="Hapus" @click="confirmDelete(doc)" :id="'del-kua-'+doc.id">
+                    <i class="fa-solid fa-trash" style="font-size:13px;"></i>
                   </button>
                 </div>
               </td>
