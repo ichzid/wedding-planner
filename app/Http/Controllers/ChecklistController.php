@@ -17,7 +17,7 @@ class ChecklistController extends Controller
     public function index(Request $request)
     {
         $wedding    = $this->getWedding();
-        $checklists = $wedding->checklists()->get()->groupBy('bulan_range');
+        $checklists = $wedding->checklists()->orderBy('no')->orderBy('id')->get()->groupBy('bulan_range');
         $bulanOptions = WeddingChecklist::bulanRangeList();
 
         return Inertia::render('Checklist/Index', [
@@ -55,6 +55,28 @@ class ChecklistController extends Controller
         ]);
 
         $checklist->update($data);
+        return redirect()->route('checklist.index');
+    }
+
+    public function reorder(Request $request)
+    {
+        $data = $request->validate([
+            'items' => 'required|array',
+            'items.*.id' => 'required|integer|exists:wedding_checklist,id',
+            'items.*.bulan_range' => 'required|string',
+        ]);
+
+        $wedding = $this->getWedding();
+
+        foreach ($data['items'] as $index => $item) {
+            WeddingChecklist::where('wedding_id', $wedding->id)
+                ->where('id', $item['id'])
+                ->update([
+                    'bulan_range' => $item['bulan_range'],
+                    'no' => $index + 1,
+                ]);
+        }
+
         return redirect()->route('checklist.index');
     }
 

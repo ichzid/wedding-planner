@@ -14,7 +14,7 @@ return new class extends Migration
             $table->integer('no')->default(0);
             $table->string('kategori');
             $table->string('nama_item');
-            $table->enum('untuk', ['groom', 'bride'])->default('groom');
+            $table->enum('untuk', ['cpp', 'cpw'])->default('cpp');
             $table->integer('qty')->default(1);
             $table->string('satuan')->nullable();
             $table->bigInteger('harga')->default(0);

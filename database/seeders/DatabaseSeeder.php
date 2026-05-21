@@ -51,6 +51,7 @@ class DatabaseSeeder extends Seeder
                 'estimasi_budget' => $b[4],
                 'dp'              => $b[5],
                 'pelunasan'       => $b[6],
+                'sumber_dana'     => $b[0] % 2 === 0 ? 'cpw' : 'cpp',
                 'status'          => $b[7],
                 'catatan'         => $b[8],
             ]);
@@ -58,15 +59,15 @@ class DatabaseSeeder extends Seeder
 
         // ── SESERAHAN ──────────────────────────────────────────────────────
         $seserahan = [
-            [1, 'Perhiasan', 'Cincin Nikah Emas', 'bride', 1, 'set', 4000000, 'belum'],
-            [2, 'Ibadah', 'Seperangkat Alat Sholat', 'bride', 1, 'set', 1000000, 'belum'],
-            [3, 'Pakaian', 'Kain Kebaya & Bawahan', 'bride', 1, 'set', 1500000, 'sudah_dibeli'],
-            [4, 'Aksesoris', 'Tas Pesta Wanita', 'bride', 1, 'buah', 1000000, 'belum'],
-            [5, 'Aksesoris', 'Sepatu Wanita', 'bride', 1, 'pasang', 700000, 'belum'],
-            [6, 'Kosmetik', 'Skincare & Makeup', 'bride', 1, 'set', 1000000, 'belum'],
-            [7, 'Bodycare', 'Perawatan Tubuh & Parfum', 'bride', 1, 'set', 500000, 'sudah_dibeli'],
-            [8, 'Makanan', 'Kue Basah Hantaran', 'bride', 1, 'kotak', 150000, 'belum'],
-            [9, 'Makanan', 'Parcel Buah Segar', 'bride', 1, 'kotak', 150000, 'belum'],
+            [1, 'Perhiasan', 'Cincin Nikah Emas', 'cpw', 1, 'set', 4000000, 'belum'],
+            [2, 'Ibadah', 'Seperangkat Alat Sholat', 'cpw', 1, 'set', 1000000, 'belum'],
+            [3, 'Pakaian', 'Kain Kebaya & Bawahan', 'cpw', 1, 'set', 1500000, 'sudah_dibeli'],
+            [4, 'Aksesoris', 'Tas Pesta Wanita', 'cpw', 1, 'buah', 1000000, 'belum'],
+            [5, 'Aksesoris', 'Sepatu Wanita', 'cpw', 1, 'pasang', 700000, 'belum'],
+            [6, 'Kosmetik', 'Skincare & Makeup', 'cpw', 1, 'set', 1000000, 'belum'],
+            [7, 'Bodycare', 'Perawatan Tubuh & Parfum', 'cpw', 1, 'set', 500000, 'sudah_dibeli'],
+            [8, 'Makanan', 'Kue Basah Hantaran', 'cpw', 1, 'kotak', 150000, 'belum'],
+            [9, 'Makanan', 'Parcel Buah Segar', 'cpw', 1, 'kotak', 150000, 'belum'], 
         ];
 
         foreach ($seserahan as $s) {

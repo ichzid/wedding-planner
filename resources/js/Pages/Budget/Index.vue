@@ -46,7 +46,7 @@
         <option value="">Semua Status</option>
         <option v-for="(label, key) in statusOptions" :key="key" :value="key">{{ label }}</option>
       </select>
-      <button v-if="filterKategori || filterStatus || searchQuery" class="btn btn--outline btn--sm" @click="resetFilters">
+      <button v-if="filterKategori || filterStatus || searchQuery || sortBy" class="btn btn--outline btn--sm" @click="resetFilters">
         <i class="fa-solid fa-xmark"></i> Reset
       </button>
     </div>
@@ -57,36 +57,55 @@
         <table class="tbl">
           <thead>
             <tr>
-              <th style="width:36px">#</th>
-              <th>
+              <th rowspan="2" style="width:36px">#</th>
+              <th rowspan="2">
                 <button class="sort-btn" @click="toggleSort('kategori')">
                   Kategori <i :class="sortIcon('kategori')"></i>
                 </button>
               </th>
-              <th>Item / Vendor</th>
-              <th class="text-right">
+              <th rowspan="2">Item / Vendor</th>
+              <th rowspan="2">Sumber Dana</th>
+              <th rowspan="2" class="text-right">
                 <button class="sort-btn sort-btn--right" @click="toggleSort('estimasi_budget')">
                   Est. Budget <i :class="sortIcon('estimasi_budget')"></i>
                 </button>
               </th>
-              <th class="text-right">DP</th>
-              <th class="text-right">Pelunasan</th>
-              <th class="text-right">Sisa</th>
-              <th>
+              <th colspan="2" class="text-center grouped-th">Realisasi Budget</th>
+              <th rowspan="2" class="text-right">Sisa</th>
+              <th rowspan="2">
                 <button class="sort-btn" @click="toggleSort('status')">
                   Status <i :class="sortIcon('status')"></i>
                 </button>
               </th>
-              <th class="text-center" style="width:80px">Aksi</th>
+              <th rowspan="2" class="text-center" style="width:80px">Aksi</th>
+            </tr>
+            <tr>
+              <th class="text-right sub-th">DP</th>
+              <th class="text-right sub-th">Pelunasan</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="b in filteredBudgets" :key="b.id">
-              <td class="mono-text">{{ b.no }}</td>
+            <tr
+              v-for="(b, index) in filteredBudgets"
+              :key="b.id"
+              class="draggable-row"
+              :class="{ 'is-dragging': draggedId === b.id, 'is-drop-target': dragOverId === b.id, 'is-drop-before': dropPlacement(b.id) === 'before', 'is-drop-after': dropPlacement(b.id) === 'after', 'is-drag-disabled': !canDragRows }"
+              :draggable="canDragRows"
+              @dragstart="startDrag(b, index, $event)"
+              @dragover.prevent="setDragOver(b, index)"
+              @drop="dropRow(index)"
+              @dragend="endDrag"
+            >
+              <td class="mono-text drag-cell"><i class="fa-solid fa-grip-vertical"></i> {{ b.no }}</td>
               <td><span class="chip chip--soft">{{ b.kategori }}</span></td>
               <td>
                 <p class="item-name">{{ b.item }}</p>
                 <p v-if="b.vendor" class="item-sub">{{ b.vendor }}</p>
+              </td>
+              <td>
+                <span class="chip" :class="sumberDanaChipClass(b.sumber_dana)">
+                  {{ sumberDanaOptions[b.sumber_dana] || 'Mempelai Pria' }}
+                </span>
               </td>
               <td class="text-right fw-600">{{ formatRp(b.estimasi_budget) }}</td>
               <td class="text-right" :class="b.dp > 0 ? 'text-dark' : 'text-dim'">
@@ -103,17 +122,20 @@
               </td>
               <td>
                 <div style="display:flex;align-items:center;justify-content:center;gap:2px">
+                  <button class="btn btn--ghost btn--icon" title="Copy" @click="openCopy(b)" :id="'copy-budget-'+b.id">
+                    <i class="fa-solid fa-copy action-icon action-icon--copy"></i>
+                  </button>
                   <button class="btn btn--ghost btn--icon" title="Edit" @click="openEdit(b)" :id="'edit-budget-'+b.id">
-                    <i class="fa-solid fa-pen-to-square" style="font-size:13px;"></i>
+                    <i class="fa-solid fa-pen-to-square action-icon action-icon--edit"></i>
                   </button>
                   <button class="btn btn--danger-ghost btn--icon" title="Hapus" @click="confirmDelete(b)" :id="'del-budget-'+b.id">
-                    <i class="fa-solid fa-trash" style="font-size:13px;"></i>
+                    <i class="fa-solid fa-trash action-icon action-icon--delete"></i>
                   </button>
                 </div>
               </td>
             </tr>
             <tr v-if="!filteredBudgets.length">
-              <td colspan="9">
+              <td colspan="10">
                 <div class="empty-state">
                   <i class="fa-solid fa-wallet empty-state__icon"></i>
                   <p class="empty-state__text">Belum ada data budget. Mulai catat pengeluaran pernikahanmu!</p>
@@ -126,7 +148,7 @@
           </tbody>
           <tfoot v-if="filteredBudgets.length">
             <tr class="tfoot-row">
-              <td colspan="3" class="tfoot-label">Total</td>
+              <td colspan="4" class="tfoot-label">Total</td>
               <td class="text-right fw-700">{{ formatRp(filteredTotalEstimasi) }}</td>
               <td class="text-right fw-600">{{ formatRp(filteredTotalDp) }}</td>
               <td class="text-right fw-600">{{ formatRp(filteredTotalPelunasan) }}</td>
@@ -143,7 +165,7 @@
       <div v-if="showModal" class="modal-backdrop">
         <div class="modal-box">
           <div class="modal-header">
-            <h3 class="modal-title">{{ editItem ? 'Edit Budget' : 'Tambah Budget' }}</h3>
+            <h3 class="modal-title">{{ editItem ? 'Edit Budget' : (copyItem ? 'Copy Budget' : 'Tambah Budget') }}</h3>
             <button class="btn btn--icon btn--ghost" @click="closeModal">
               <i class="fa-solid fa-xmark"></i>
             </button>
@@ -159,11 +181,17 @@
                 <p v-if="errors.kategori" class="form-error">{{ errors.kategori }}</p>
               </div>
               <div>
-                <label class="form-label">Status *</label>
-                <select v-model="form.status" required class="form-input">
-                  <option v-for="(label, key) in statusOptions" :key="key" :value="key">{{ label }}</option>
+                <label class="form-label">Dana Dari *</label>
+                <select v-model="form.sumber_dana" required class="form-input">
+                  <option v-for="(label, key) in sumberDanaOptions" :key="key" :value="key">{{ label }}</option>
                 </select>
               </div>
+            </div>
+            <div style="margin-top:var(--space-md)">
+              <label class="form-label">Status *</label>
+              <select v-model="form.status" required class="form-input">
+                <option v-for="(label, key) in statusOptions" :key="key" :value="key">{{ label }}</option>
+              </select>
             </div>
             <div style="margin-top:var(--space-md)">
               <label class="form-label">Nama Item *</label>
@@ -207,7 +235,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
 import AppLayout from '@/Layouts/AppLayout.vue';
@@ -224,6 +252,7 @@ const props = defineProps({
   totalSisa: Number,
 });
 
+const localBudgets = ref([...props.budgets]);
 const searchQuery  = ref('');
 const filterKategori = ref('');
 const filterStatus   = ref('');
@@ -231,11 +260,22 @@ const sortBy    = ref('');
 const sortDir   = ref('asc');
 const showModal = ref(false);
 const editItem  = ref(null);
+const copyItem  = ref(null);
 const saving    = ref(false);
 const errors    = ref({});
+const draggedIndex = ref(null);
+const draggedId = ref(null);
+const dragOverIndex = ref(null);
+const dragOverId = ref(null);
+
+const sumberDanaOptions = {
+  cpp: 'Mempelai Pria',
+  cpw: 'Mempelai Wanita',
+};
 
 const defaultForm = () => ({
   kategori: '',
+  sumber_dana: 'cpp',
   status: 'belum',
   item: '',
   vendor: '',
@@ -246,8 +286,12 @@ const defaultForm = () => ({
 });
 const form = ref(defaultForm());
 
+watch(() => props.budgets, (budgets) => {
+  localBudgets.value = [...budgets];
+});
+
 const filteredBudgets = computed(() => {
-  let list = [...props.budgets];
+  let list = [...localBudgets.value];
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase();
     list = list.filter(b =>
@@ -270,6 +314,8 @@ const filteredBudgets = computed(() => {
   return list;
 });
 
+const canDragRows = computed(() => !searchQuery.value && !filterKategori.value && !filterStatus.value && !sortBy.value);
+
 const filteredTotalEstimasi  = computed(() => filteredBudgets.value.reduce((s, b) => s + (b.estimasi_budget || 0), 0));
 const filteredTotalDp        = computed(() => filteredBudgets.value.reduce((s, b) => s + (b.dp || 0), 0));
 const filteredTotalPelunasan = computed(() => filteredBudgets.value.reduce((s, b) => s + (b.pelunasan || 0), 0));
@@ -289,10 +335,17 @@ function statusChip(s) {
   return map[s] || 'chip--soft';
 }
 
+function sumberDanaChipClass(sumberDana) {
+  if (sumberDana === 'cpw') return 'chip--cpw';
+  return 'chip--cpp';
+}
+
 function resetFilters() {
   searchQuery.value   = '';
   filterKategori.value = '';
   filterStatus.value  = '';
+  sortBy.value = '';
+  sortDir.value = 'asc';
 }
 
 function toggleSort(field) {
@@ -311,17 +364,10 @@ function sortIcon(field) {
     : 'fa-solid fa-sort-down fa-xs';
 }
 
-function openCreate() {
-  editItem.value = null;
-  form.value     = defaultForm();
-  errors.value   = {};
-  showModal.value = true;
-}
-
-function openEdit(b) {
-  editItem.value = b;
-  form.value = {
+function budgetToForm(b) {
+  return {
     kategori:        b.kategori,
+    sumber_dana:     b.sumber_dana || 'cpp',
     status:          b.status,
     item:            b.item,
     vendor:          b.vendor || '',
@@ -330,11 +376,36 @@ function openEdit(b) {
     pelunasan:       b.pelunasan,
     catatan:         b.catatan || '',
   };
+}
+
+function openCreate() {
+  editItem.value = null;
+  copyItem.value = null;
+  form.value     = defaultForm();
   errors.value   = {};
   showModal.value = true;
 }
 
-function closeModal() { showModal.value = false; }
+function openCopy(b) {
+  editItem.value = null;
+  copyItem.value = b;
+  form.value     = budgetToForm(b);
+  errors.value   = {};
+  showModal.value = true;
+}
+
+function openEdit(b) {
+  editItem.value = b;
+  copyItem.value = null;
+  form.value = budgetToForm(b);
+  errors.value   = {};
+  showModal.value = true;
+}
+
+function closeModal() {
+  showModal.value = false;
+  copyItem.value = null;
+}
 
 async function save() {
   saving.value = true;
@@ -352,7 +423,7 @@ async function save() {
   router[method](url, payload, {
     preserveScroll: true,
     onSuccess: () => {
-      showToast(editItem.value ? 'Budget berhasil diupdate.' : 'Budget berhasil ditambahkan.');
+      showToast(editItem.value ? 'Budget berhasil diupdate.' : (copyItem.value ? 'Copy budget berhasil ditambahkan.' : 'Budget berhasil ditambahkan.'));
       closeModal();
       saving.value = false;
     },
@@ -361,6 +432,56 @@ async function save() {
       saving.value = false;
     },
   });
+}
+
+function startDrag(item, index, event) {
+  if (!canDragRows.value) return;
+  draggedIndex.value = index;
+  draggedId.value = item.id;
+  event.dataTransfer.effectAllowed = 'move';
+}
+
+function setDragOver(item, index) {
+  if (!canDragRows.value || draggedId.value === item.id) return;
+  dragOverId.value = item.id;
+  dragOverIndex.value = index;
+}
+
+function dropPlacement(id) {
+  if (dragOverId.value !== id || draggedIndex.value === null || dragOverIndex.value === null) return null;
+  return dragOverIndex.value > draggedIndex.value ? 'after' : 'before';
+}
+
+function dropRow(targetIndex) {
+  if (!canDragRows.value || draggedIndex.value === null || draggedIndex.value === targetIndex) {
+    endDrag();
+    return;
+  }
+
+  const reordered = [...localBudgets.value];
+  const [moved] = reordered.splice(draggedIndex.value, 1);
+  reordered.splice(targetIndex, 0, moved);
+  localBudgets.value = reordered.map((item, index) => ({ ...item, no: index + 1 }));
+
+  router.patch(route('budget.reorder'), {
+    ids: localBudgets.value.map((item) => item.id),
+  }, {
+    preserveScroll: true,
+    onSuccess: () => showToast('Urutan budget berhasil disimpan.'),
+    onError: () => {
+      localBudgets.value = [...props.budgets];
+      showToast('Urutan budget gagal disimpan.');
+    },
+  });
+
+  endDrag();
+}
+
+function endDrag() {
+  draggedIndex.value = null;
+  draggedId.value = null;
+  dragOverIndex.value = null;
+  dragOverId.value = null;
 }
 
 function confirmDelete(b) {
@@ -422,6 +543,47 @@ function confirmDelete(b) {
   padding: 0; letter-spacing: inherit; text-transform: inherit;
 }
 .sort-btn--right { margin-left: auto; display: flex; }
+.tbl thead th { vertical-align: middle; }
+.grouped-th {
+  background: var(--rose-pale);
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  color: var(--text) !important;
+  font-weight: 700 !important;
+  text-align: center !important;
+}
+.sub-th {
+  background: var(--rose-pale);
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+  border-bottom: 1px solid var(--border);
+}
+.sub-th:first-child { border-left: 1px solid var(--border); }
+.sub-th:last-child { border-right: 1px solid var(--border); }
+
+.draggable-row { cursor: grab; position: relative; transition: background 0.18s ease, opacity 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease; }
+.draggable-row.is-dragging { opacity: 0.45; transform: scale(0.995); }
+.draggable-row.is-drop-target { background: var(--rose-pale); box-shadow: inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
+.draggable-row.is-drop-before { box-shadow: inset 0 3px 0 var(--rose), inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
+.draggable-row.is-drop-after { box-shadow: inset 0 -3px 0 var(--rose), inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
+.draggable-row.is-drop-before td:first-child::before,
+.draggable-row.is-drop-after td:first-child::after {
+  content: '';
+  position: absolute;
+  left: 10px;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--rose);
+  box-shadow: 0 0 0 3px var(--rose-pale);
+}
+.draggable-row.is-drop-before td:first-child::before { top: -4px; }
+.draggable-row.is-drop-after td:first-child::after { bottom: -4px; }
+.draggable-row.is-drag-disabled { cursor: default; }
+.drag-cell { white-space: nowrap; }
+.drag-cell i { color: var(--text-dim); margin-right: 6px; }
+.is-drag-disabled .drag-cell i { opacity: 0.35; }
 
 .mono-text { font-family: monospace; font-size: 11px; color: var(--text-dim); }
 .item-name { font-size: 13.5px; font-weight: 500; color: var(--text); }
@@ -448,6 +610,9 @@ function confirmDelete(b) {
   letter-spacing: 0.06em;
   color: var(--text-muted);
 }
+
+.chip--cpw { background: #fdf0f8; color: #c4719e; border: 1px solid #f0c8e4; }
+.chip--cpp { background: #eef4ff; color: #5a82c4; border: 1px solid #c8d8f0; }
 
 .form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
 .form-row-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-md); }

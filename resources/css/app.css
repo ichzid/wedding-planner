@@ -1,3 +1,151 @@
 /* Global CSS */
 #nprogress { pointer-events: none; }
 #nprogress .bar { background: #1a1a18; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 2px; }
+
+:root {
+  --ink-50: var(--rose-pale);
+  --ink-100: var(--border);
+  --ink-300: var(--text-dim);
+  --ink-400: var(--text-muted);
+  --ink-600: var(--text-muted);
+  --ink-800: var(--text);
+  --ink-900: var(--text);
+  --font-size-xs: 11.5px;
+  --font-size-sm: 12px;
+  --font-size-base: 13.5px;
+  --font-size-md: 14px;
+  --font-size-lg: 18px;
+  --font-size-xl: 22px;
+  --font-size-title: 24px;
+  --line-height-base: 1.5;
+}
+
+body {
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+}
+
+.page-title {
+  font-size: var(--font-size-title) !important;
+  font-weight: 700 !important;
+  color: var(--text) !important;
+  letter-spacing: -0.02em;
+}
+
+.page-sub {
+  font-size: var(--font-size-md) !important;
+  color: var(--text-muted) !important;
+  line-height: 1.45;
+}
+
+.card {
+  background: var(--surface) !important;
+  border-color: var(--border) !important;
+  color: var(--text);
+}
+
+.summary-grid {
+  gap: var(--space-md) !important;
+  margin-bottom: var(--space-xl) !important;
+}
+
+.summary-card {
+  padding: var(--space-xl) !important;
+}
+
+.summary-card__label {
+  font-size: var(--font-size-sm) !important;
+  font-weight: 600 !important;
+  color: var(--text-muted) !important;
+  text-transform: none !important;
+  letter-spacing: 0.02em !important;
+}
+
+.summary-card__value {
+  font-size: var(--font-size-xl) !important;
+  font-weight: 800 !important;
+  color: var(--text) !important;
+  line-height: 1.2;
+}
+
+.summary-card__sub {
+  font-size: var(--font-size-xs) !important;
+  color: var(--text-muted) !important;
+}
+
+.tbl th,
+.tbl td {
+  font-size: var(--font-size-base) !important;
+  color: var(--text);
+}
+
+.tbl th {
+  font-size: var(--font-size-xs) !important;
+  color: var(--text-muted) !important;
+  font-weight: 700 !important;
+}
+
+.item-name,
+.guest-name,
+.checklist-task {
+  font-size: var(--font-size-base) !important;
+  color: var(--text) !important;
+  font-weight: 500 !important;
+}
+
+.item-sub,
+.checklist-detail,
+.text-muted,
+.drag-hint {
+  font-size: var(--font-size-xs) !important;
+  color: var(--text-muted) !important;
+}
+
+.mono-text {
+  font-size: 11px !important;
+  color: var(--text-dim) !important;
+}
+
+.chip {
+  font-size: var(--font-size-xs) !important;
+  font-weight: 600 !important;
+  line-height: 1.25;
+}
+
+.form-label {
+  font-size: var(--font-size-sm) !important;
+  color: var(--text-muted) !important;
+}
+
+.form-input {
+  font-size: var(--font-size-md) !important;
+  color: var(--text) !important;
+}
+
+.btn {
+  font-size: var(--font-size-base) !important;
+}
+
+.btn--sm {
+  font-size: var(--font-size-sm) !important;
+}
+
+.modal-title {
+  font-size: var(--font-size-lg) !important;
+  color: var(--text) !important;
+}
+
+.tfoot-row td {
+  color: var(--text) !important;
+}
+
+.tfoot-label {
+  font-size: var(--font-size-xs) !important;
+  color: var(--text-muted) !important;
+}
+
+.fw-600 { font-weight: 600 !important; }
+.fw-700 { font-weight: 700 !important; }
+.text-dark { color: var(--text) !important; }
+.text-dim { color: var(--text-dim) !important; }
+

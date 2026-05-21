@@ -38,6 +38,16 @@ class SeserahanItem extends Model
 
     public static function kategoriList(): array
     {
-        return ['Umum', 'Toileteries', 'Skincare', 'Makeup', 'Lainnya'];
+        return [
+            'Perlengkapan Ibadah',
+            'Pakaian & Sandang',
+            'Tas & Sepatu',
+            'Kosmetik & Skincare',
+            'Perlengkapan Mandi',
+            'Perhiasan',
+            'Perlengkapan Tidur',
+            'Makanan & Buah',
+            'Lainnya'
+        ];
     }
 }

@@ -47,13 +47,19 @@
         <span class="group-label">{{ bulan }}</span>
         <span class="group-count">{{ items.filter(i => i.status).length }}/{{ items.length }}</span>
       </div>
-      <div class="card" style="overflow:hidden">
+      <div class="card checklist-dropzone" :class="{ 'checklist-dropzone--active': dragOverGroup === bulan }" style="overflow:hidden" @dragover.prevent="setGroupDragOver(bulan)" @drop="dropToGroup(bulan)">
         <div
           v-for="item in items"
           :key="item.id"
-          class="checklist-row"
-          :class="{ 'checklist-row--done': item.status }"
+          class="checklist-row draggable-row"
+          :class="{ 'checklist-row--done': item.status, 'is-dragging': draggedId === item.id, 'is-drop-target': dragOverId === item.id, 'is-drop-before': dropPlacement(item.id) === 'before', 'is-drop-after': dropPlacement(item.id) === 'after', 'is-drag-disabled': !canDragRows }"
+          :draggable="canDragRows"
+          @dragstart="startDrag(item, $event)"
+          @dragover.prevent="setDragOver(item)"
+          @drop.stop="dropRow(item)"
+          @dragend="endDrag"
         >
+          <span class="drag-cell"><i class="fa-solid fa-grip-vertical"></i></span>
           <button class="check-btn" @click="toggleItem(item)" :title="item.status ? 'Tandai belum' : 'Tandai selesai'">
             <i :class="item.status ? 'fa-solid fa-circle-check check-done' : 'fa-regular fa-circle check-pending'"></i>
           </button>
@@ -62,11 +68,14 @@
             <p v-if="item.detail" class="checklist-detail">{{ item.detail }}</p>
           </div>
           <div class="checklist-actions">
+            <button class="btn btn--ghost btn--icon" title="Copy" @click="openCopy(item)" :id="'copy-checklist-'+item.id">
+              <i class="fa-solid fa-copy action-icon action-icon--copy"></i>
+            </button>
             <button class="btn btn--ghost btn--icon" title="Edit" @click="openEdit(item)" :id="'edit-checklist-'+item.id">
-              <i class="fa-solid fa-pen-to-square" style="font-size:13px;"></i>
+              <i class="fa-solid fa-pen-to-square action-icon action-icon--edit"></i>
             </button>
             <button class="btn btn--danger-ghost btn--icon" title="Hapus" @click="confirmDelete(item)" :id="'del-checklist-'+item.id">
-              <i class="fa-solid fa-trash" style="font-size:13px;"></i>
+              <i class="fa-solid fa-trash action-icon action-icon--delete"></i>
             </button>
           </div>
         </div>
@@ -89,7 +98,7 @@
       <div v-if="showModal" class="modal-backdrop">
         <div class="modal-box">
           <div class="modal-header">
-            <h3 class="modal-title">{{ editItem ? 'Edit Checklist' : 'Tambah Checklist' }}</h3>
+            <h3 class="modal-title">{{ editItem ? 'Edit Checklist' : (copyItem ? 'Copy Checklist' : 'Tambah Checklist') }}</h3>
             <button class="btn btn--icon btn--ghost" @click="closeModal">
               <i class="fa-solid fa-xmark"></i>
             </button>
@@ -127,7 +136,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
 import AppLayout from '@/Layouts/AppLayout.vue';
@@ -138,19 +147,33 @@ const props = defineProps({
   bulanOptions: Array,
 });
 
-const allItems = computed(() => {
+function flattenChecklists(checklists) {
   const items = [];
-  for (const group of Object.values(props.checklists)) {
+  for (const group of Object.values(checklists)) {
     items.push(...group);
   }
   return items;
+}
+
+const localItems = ref(flattenChecklists(props.checklists));
+
+watch(() => props.checklists, (checklists) => {
+  localItems.value = flattenChecklists(checklists);
 });
+
+const allItems = computed(() => localItems.value);
 
 const searchQuery  = ref('');
 const filterBulan  = ref('');
 const filterStatus = ref('');
+const draggedIndex = ref(null);
+const draggedId = ref(null);
+const dragOverIndex = ref(null);
+const dragOverId = ref(null);
+const dragOverGroup = ref(null);
 const showModal = ref(false);
 const editItem  = ref(null);
+const copyItem  = ref(null);
 const saving    = ref(false);
 const errors    = ref({});
 
@@ -176,9 +199,25 @@ const filteredItems = computed(() => {
   return list;
 });
 
+const canDragRows = computed(() => !searchQuery.value && !filterBulan.value && !filterStatus.value);
+
+const groupOrder = computed(() => {
+  const order = new Map();
+  props.bulanOptions.forEach((bulan, index) => order.set(bulan, index));
+  return order;
+});
+
+const orderedItems = computed(() => [...filteredItems.value].sort((a, b) => {
+  const aOrder = groupOrder.value.get(a.bulan_range) ?? Number.MAX_SAFE_INTEGER;
+  const bOrder = groupOrder.value.get(b.bulan_range) ?? Number.MAX_SAFE_INTEGER;
+  if (aOrder !== bOrder) return aOrder - bOrder;
+  return (a.no ?? 0) - (b.no ?? 0);
+}));
+
 const groupedChecklists = computed(() => {
   const groups = {};
-  for (const item of filteredItems.value) {
+
+  for (const item of orderedItems.value) {
     const key = item.bulan_range || 'Lainnya';
     if (!groups[key]) groups[key] = [];
     groups[key].push(item);
@@ -194,19 +233,32 @@ function resetFilters() {
 
 function openCreate() {
   editItem.value  = null;
+  copyItem.value  = null;
   form.value      = defaultForm();
+  errors.value    = {};
+  showModal.value = true;
+}
+
+function openCopy(item) {
+  editItem.value  = null;
+  copyItem.value  = item;
+  form.value      = { bulan_range: item.bulan_range, persiapan: item.persiapan, detail: item.detail || '' };
   errors.value    = {};
   showModal.value = true;
 }
 
 function openEdit(item) {
   editItem.value  = item;
+  copyItem.value  = null;
   form.value      = { bulan_range: item.bulan_range, persiapan: item.persiapan, detail: item.detail || '' };
   errors.value    = {};
   showModal.value = true;
 }
 
-function closeModal() { showModal.value = false; }
+function closeModal() {
+  showModal.value = false;
+  copyItem.value = null;
+}
 
 function save() {
   saving.value = true;
@@ -215,7 +267,11 @@ function save() {
   const method = editItem.value ? 'patch' : 'post';
   router[method](url, form.value, {
     preserveScroll: true,
-    onSuccess: () => { showToast(editItem.value ? 'Checklist diupdate.' : 'Checklist ditambahkan.'); closeModal(); saving.value = false; },
+    onSuccess: () => {
+      showToast(editItem.value ? 'Checklist diupdate.' : (copyItem.value ? 'Copy checklist ditambahkan.' : 'Checklist ditambahkan.'));
+      closeModal();
+      saving.value = false;
+    },
     onError: (errs) => { errors.value = errs; saving.value = false; },
   });
 }
@@ -225,6 +281,86 @@ function toggleItem(item) {
     preserveScroll: true,
     onSuccess: () => showToast(item.status ? 'Ditandai belum.' : 'Selesai! ✓'),
   });
+}
+
+function startDrag(item, event) {
+  if (!canDragRows.value) return;
+  draggedIndex.value = orderedItems.value.findIndex((row) => row.id === item.id);
+  draggedId.value = item.id;
+  event.dataTransfer.effectAllowed = 'move';
+}
+
+function setDragOver(item) {
+  if (!canDragRows.value || draggedId.value === item.id) return;
+  dragOverId.value = item.id;
+  dragOverIndex.value = orderedItems.value.findIndex((row) => row.id === item.id);
+  dragOverGroup.value = item.bulan_range;
+}
+
+function setGroupDragOver(bulan) {
+  if (!canDragRows.value || draggedId.value === null) return;
+  dragOverGroup.value = bulan;
+}
+
+function dropPlacement(id) {
+  if (dragOverId.value !== id || draggedIndex.value === null || dragOverIndex.value === null) return null;
+  return dragOverIndex.value > draggedIndex.value ? 'after' : 'before';
+}
+
+function persistReorder(reordered) {
+  localItems.value = reordered.map((item, index) => ({ ...item, no: index + 1 }));
+
+  router.patch(route('checklist.reorder'), {
+    items: localItems.value.map((item) => ({ id: item.id, bulan_range: item.bulan_range })),
+  }, {
+    preserveScroll: true,
+    onSuccess: () => showToast('Urutan checklist berhasil disimpan.'),
+    onError: () => {
+      localItems.value = flattenChecklists(props.checklists);
+      showToast('Urutan checklist gagal disimpan.');
+    },
+  });
+}
+
+function dropRow(target) {
+  const sourceIndex = orderedItems.value.findIndex((row) => row.id === draggedId.value);
+  const targetIndex = orderedItems.value.findIndex((row) => row.id === target.id);
+  if (!canDragRows.value || sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) {
+    endDrag();
+    return;
+  }
+
+  const reordered = [...orderedItems.value];
+  const [moved] = reordered.splice(sourceIndex, 1);
+  moved.bulan_range = target.bulan_range;
+  const insertIndex = sourceIndex < targetIndex ? targetIndex - 1 : targetIndex;
+  reordered.splice(insertIndex, 0, moved);
+  persistReorder(reordered);
+  endDrag();
+}
+
+function dropToGroup(bulan) {
+  const sourceIndex = orderedItems.value.findIndex((row) => row.id === draggedId.value);
+  if (!canDragRows.value || sourceIndex < 0) {
+    endDrag();
+    return;
+  }
+
+  const reordered = [...orderedItems.value];
+  const [moved] = reordered.splice(sourceIndex, 1);
+  moved.bulan_range = bulan;
+  const lastIndexInGroup = reordered.map((item) => item.bulan_range).lastIndexOf(bulan);
+  reordered.splice(lastIndexInGroup + 1, 0, moved);
+  persistReorder(reordered);
+  endDrag();
+}
+
+function endDrag() {
+  draggedIndex.value = null;
+  draggedId.value = null;
+  dragOverIndex.value = null;
+  dragOverId.value = null;
+  dragOverGroup.value = null;
 }
 
 function confirmDelete(item) {
@@ -249,6 +385,21 @@ function confirmDelete(item) {
 .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text-dim); font-size: 12px; pointer-events: none; }
 .search-input { padding-left: 30px; }
 .toolbar__select { max-width: 160px; }
+
+.checklist-dropzone { transition: box-shadow 0.18s ease, background 0.18s ease; }
+.checklist-dropzone--active { box-shadow: inset 0 0 0 2px var(--rose); background: var(--rose-pale); }
+.draggable-row { cursor: grab; position: relative; transition: background 0.18s ease, opacity 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease; }
+.draggable-row.is-dragging { opacity: 0.45; transform: scale(0.995); }
+.draggable-row.is-drop-target { background: var(--rose-pale); box-shadow: inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
+.draggable-row.is-drop-before { box-shadow: inset 0 3px 0 var(--rose), inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
+.draggable-row.is-drop-after { box-shadow: inset 0 -3px 0 var(--rose), inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
+.draggable-row.is-drop-before::before,
+.draggable-row.is-drop-after::after { content: ''; position: absolute; left: 10px; width: 8px; height: 8px; border-radius: 999px; background: var(--rose); box-shadow: 0 0 0 3px var(--rose-pale); }
+.draggable-row.is-drop-before::before { top: -4px; }
+.draggable-row.is-drop-after::after { bottom: -4px; }
+.draggable-row.is-drag-disabled { cursor: default; }
+.drag-cell { color: var(--text-dim); flex-shrink: 0; }
+.is-drag-disabled .drag-cell { opacity: 0.35; }
 
 .group-section { margin-bottom: var(--space-lg); }
 .group-header {

@@ -20,12 +20,12 @@
         <p class="summary-card__value">{{ totalDok }}</p>
       </div>
       <div class="card summary-card">
-        <p class="summary-card__label">CPW Siap</p>
+        <p class="summary-card__label">Mempelai Wanita Siap</p>
         <p class="summary-card__value">{{ doneCpw }}<span style="font-size:16px;font-weight:500;color:var(--ink-300)">/{{ totalDok }}</span></p>
         <div class="prog-track mt-2"><div class="prog-fill" :style="{ width: (totalDok ? Math.round(doneCpw/totalDok*100) : 0) + '%' }"></div></div>
       </div>
       <div class="card summary-card">
-        <p class="summary-card__label">CPP Siap</p>
+        <p class="summary-card__label">Mempelai Pria Siap</p>
         <p class="summary-card__value">{{ doneCpp }}<span style="font-size:16px;font-weight:500;color:var(--ink-300)">/{{ totalDok }}</span></p>
         <div class="prog-track mt-2"><div class="prog-fill" :style="{ width: (totalDok ? Math.round(doneCpp/totalDok*100) : 0) + '%' }"></div></div>
       </div>
@@ -60,15 +60,25 @@
               <th style="width:36px">#</th>
               <th>Nama Dokumen</th>
               <th class="text-right">Biaya</th>
-              <th class="text-center">CPW</th>
-              <th class="text-center">CPP</th>
+              <th class="text-center">Mempelai Wanita</th>
+              <th class="text-center">Mempelai Pria</th>
               <th>Catatan</th>
               <th class="text-center" style="width:80px">Aksi</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="doc in filteredDocuments" :key="doc.id" :class="{ 'row--done': doc.cpw_status && doc.cpp_status }">
-              <td class="mono-text">{{ doc.no }}</td>
+            <tr
+              v-for="(doc, index) in filteredDocuments"
+              :key="doc.id"
+              class="draggable-row"
+              :class="{ 'row--done': doc.cpw_status && doc.cpp_status, 'is-dragging': draggedId === doc.id, 'is-drop-target': dragOverId === doc.id, 'is-drop-before': dropPlacement(doc.id) === 'before', 'is-drop-after': dropPlacement(doc.id) === 'after', 'is-drag-disabled': !canDragRows }"
+              :draggable="canDragRows"
+              @dragstart="startDrag(doc, index, $event)"
+              @dragover.prevent="setDragOver(doc, index)"
+              @drop="dropRow(index)"
+              @dragend="endDrag"
+            >
+              <td class="mono-text drag-cell"><i class="fa-solid fa-grip-vertical"></i> {{ doc.no }}</td>
               <td>
                 <p class="item-name">{{ doc.nama_dokumen }}</p>
               </td>
@@ -94,11 +104,14 @@
               <td class="text-muted">{{ doc.catatan || '–' }}</td>
               <td>
                 <div style="display:flex;align-items:center;justify-content:center;gap:2px">
+                  <button class="btn btn--ghost btn--icon" title="Copy" @click="openCopy(doc)" :id="'copy-kua-'+doc.id">
+                    <i class="fa-solid fa-copy action-icon action-icon--copy"></i>
+                  </button>
                   <button class="btn btn--ghost btn--icon" title="Edit" @click="openEdit(doc)" :id="'edit-kua-'+doc.id">
-                    <i class="fa-solid fa-pen-to-square" style="font-size:13px;"></i>
+                    <i class="fa-solid fa-pen-to-square action-icon action-icon--edit"></i>
                   </button>
                   <button class="btn btn--danger-ghost btn--icon" title="Hapus" @click="confirmDelete(doc)" :id="'del-kua-'+doc.id">
-                    <i class="fa-solid fa-trash" style="font-size:13px;"></i>
+                    <i class="fa-solid fa-trash action-icon action-icon--delete"></i>
                   </button>
                 </div>
               </td>
@@ -121,7 +134,7 @@
       <div v-if="showModal" class="modal-backdrop">
         <div class="modal-box">
           <div class="modal-header">
-            <h3 class="modal-title">{{ editItem ? 'Edit Dokumen' : 'Tambah Dokumen' }}</h3>
+            <h3 class="modal-title">{{ editItem ? 'Edit Dokumen' : (copyItem ? 'Copy Dokumen' : 'Tambah Dokumen') }}</h3>
             <button class="btn btn--icon btn--ghost" @click="closeModal"><i class="fa-solid fa-xmark"></i></button>
           </div>
           <form @submit.prevent="save" class="modal-body">
@@ -153,7 +166,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
 import AppLayout from '@/Layouts/AppLayout.vue';
@@ -168,10 +181,16 @@ const props = defineProps({
   allDone: Boolean,
 });
 
+const localDocuments = ref([...props.documents]);
 const searchQuery  = ref('');
 const filterStatus = ref('');
+const draggedIndex = ref(null);
+const draggedId = ref(null);
+const dragOverIndex = ref(null);
+const dragOverId = ref(null);
 const showModal = ref(false);
 const editItem  = ref(null);
+const copyItem  = ref(null);
 const saving    = ref(false);
 const errors    = ref({});
 
@@ -180,8 +199,12 @@ const form = ref(defaultForm());
 
 const doneCount = computed(() => props.documents.filter(d => d.cpw_status && d.cpp_status).length);
 
+watch(() => props.documents, (documents) => {
+  localDocuments.value = [...documents];
+});
+
 const filteredDocuments = computed(() => {
-  let list = [...props.documents];
+  let list = [...localDocuments.value];
   if (searchQuery.value) {
     const q = searchQuery.value.toLowerCase();
     list = list.filter(d => d.nama_dokumen?.toLowerCase().includes(q));
@@ -190,6 +213,8 @@ const filteredDocuments = computed(() => {
   if (filterStatus.value === 'pending') list = list.filter(d => !d.cpw_status || !d.cpp_status);
   return list;
 });
+
+const canDragRows = computed(() => !searchQuery.value && !filterStatus.value);
 
 function formatRp(n) {
   return 'Rp' + Number(n || 0).toLocaleString('id-ID');
@@ -201,14 +226,29 @@ function resetFilters() {
 }
 
 function openCreate() {
-  editItem.value = null; form.value = defaultForm(); errors.value = {}; showModal.value = true;
+  editItem.value = null;
+  copyItem.value = null;
+  form.value = defaultForm();
+  errors.value = {};
+  showModal.value = true;
+}
+function openCopy(doc) {
+  editItem.value = null;
+  copyItem.value = doc;
+  form.value = { nama_dokumen: doc.nama_dokumen, biaya: doc.biaya || '', catatan: doc.catatan || '' };
+  errors.value = {};
+  showModal.value = true;
 }
 function openEdit(doc) {
   editItem.value = doc;
+  copyItem.value = null;
   form.value = { nama_dokumen: doc.nama_dokumen, biaya: doc.biaya || '', catatan: doc.catatan || '' };
   errors.value = {}; showModal.value = true;
 }
-function closeModal() { showModal.value = false; }
+function closeModal() {
+  showModal.value = false;
+  copyItem.value = null;
+}
 
 function save() {
   saving.value = true; errors.value = {};
@@ -217,17 +257,67 @@ function save() {
   const method = editItem.value ? 'patch' : 'post';
   router[method](url, payload, {
     preserveScroll: true,
-    onSuccess: () => { showToast(editItem.value ? 'Dokumen diupdate.' : 'Dokumen ditambahkan.'); closeModal(); saving.value = false; },
+    onSuccess: () => { showToast(editItem.value ? 'Dokumen diupdate.' : (copyItem.value ? 'Copy dokumen ditambahkan.' : 'Dokumen ditambahkan.')); closeModal(); saving.value = false; },
     onError: (errs) => { errors.value = errs; saving.value = false; },
   });
 }
 
 function toggleCpw(doc) {
-  router.patch(route('kua.toggle-cpw', doc.id), {}, { preserveScroll: true, onSuccess: () => showToast('Status CPW diupdate.') });
+  router.patch(route('kua.toggle-cpw', doc.id), {}, { preserveScroll: true, onSuccess: () => showToast('Status Mempelai Wanita diupdate.') });
 }
 function toggleCpp(doc) {
-  router.patch(route('kua.toggle-cpp', doc.id), {}, { preserveScroll: true, onSuccess: () => showToast('Status CPP diupdate.') });
+  router.patch(route('kua.toggle-cpp', doc.id), {}, { preserveScroll: true, onSuccess: () => showToast('Status Mempelai Pria diupdate.') });
 }
+function startDrag(item, index, event) {
+  if (!canDragRows.value) return;
+  draggedIndex.value = index;
+  draggedId.value = item.id;
+  event.dataTransfer.effectAllowed = 'move';
+}
+
+function setDragOver(item, index) {
+  if (!canDragRows.value || draggedId.value === item.id) return;
+  dragOverId.value = item.id;
+  dragOverIndex.value = index;
+}
+
+function dropPlacement(id) {
+  if (dragOverId.value !== id || draggedIndex.value === null || dragOverIndex.value === null) return null;
+  return dragOverIndex.value > draggedIndex.value ? 'after' : 'before';
+}
+
+function dropRow(targetIndex) {
+  if (!canDragRows.value || draggedIndex.value === null || draggedIndex.value === targetIndex) {
+    endDrag();
+    return;
+  }
+
+  const reordered = [...localDocuments.value];
+  const [moved] = reordered.splice(draggedIndex.value, 1);
+  reordered.splice(targetIndex, 0, moved);
+  localDocuments.value = reordered.map((item, index) => ({ ...item, no: index + 1 }));
+
+  router.patch(route('kua.reorder'), {
+    ids: localDocuments.value.map((item) => item.id),
+  }, {
+    preserveScroll: true,
+    onSuccess: () => showToast('Urutan dokumen berhasil disimpan.'),
+    onError: () => {
+      localDocuments.value = [...props.documents];
+      showToast('Urutan dokumen gagal disimpan.');
+    },
+  });
+
+  endDrag();
+}
+
+function endDrag() {
+  draggedIndex.value = null;
+  draggedId.value = null;
+  dragOverIndex.value = null;
+  dragOverId.value = null;
+}
+
 function confirmDelete(doc) {
   confirmDeleteDialog(() => {
     router.delete(route('dokumen-kua.destroy', doc.id), { preserveScroll: true, onSuccess: () => showToast('Dokumen dihapus.') });
@@ -247,6 +337,20 @@ function confirmDelete(doc) {
 .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--ink-400); font-size: 12px; pointer-events: none; }
 .search-input { padding-left: 30px; }
 .toolbar__select { max-width: 160px; }
+
+.draggable-row { cursor: grab; position: relative; transition: background 0.18s ease, opacity 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease; }
+.draggable-row.is-dragging { opacity: 0.45; transform: scale(0.995); }
+.draggable-row.is-drop-target { background: var(--rose-pale); box-shadow: inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
+.draggable-row.is-drop-before { box-shadow: inset 0 3px 0 var(--rose), inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
+.draggable-row.is-drop-after { box-shadow: inset 0 -3px 0 var(--rose), inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
+.draggable-row.is-drop-before td:first-child::before,
+.draggable-row.is-drop-after td:first-child::after { content: ''; position: absolute; left: 10px; width: 8px; height: 8px; border-radius: 999px; background: var(--rose); box-shadow: 0 0 0 3px var(--rose-pale); }
+.draggable-row.is-drop-before td:first-child::before { top: -4px; }
+.draggable-row.is-drop-after td:first-child::after { bottom: -4px; }
+.draggable-row.is-drag-disabled { cursor: default; }
+.drag-cell { white-space: nowrap; }
+.drag-cell i { color: var(--ink-300); margin-right: 6px; }
+.is-drag-disabled .drag-cell i { opacity: 0.35; }
 
 .mono-text { font-family: monospace; font-size: 11px; color: var(--ink-300); }
 .item-name { font-size: 13.5px; font-weight: 500; color: var(--ink-800); }

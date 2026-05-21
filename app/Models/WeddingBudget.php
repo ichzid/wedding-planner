@@ -18,6 +18,7 @@ class WeddingBudget extends Model
         'estimasi_budget',
         'dp',
         'pelunasan',
+        'sumber_dana',
         'status',
         'catatan',
     ];

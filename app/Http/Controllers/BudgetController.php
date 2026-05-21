@@ -17,7 +17,7 @@ class BudgetController extends Controller
     public function index(Request $request)
     {
         $wedding = $this->getWedding();
-        $budgets = $wedding->budgets()->get();
+        $budgets = $wedding->budgets()->orderBy('no')->orderBy('id')->get();
 
         $totalEstimasi  = $budgets->sum('estimasi_budget');
         $totalDp        = $budgets->sum('dp');
@@ -46,6 +46,7 @@ class BudgetController extends Controller
             'estimasi_budget' => 'required|integer|min:0',
             'dp'              => 'nullable|integer|min:0',
             'pelunasan'       => 'nullable|integer|min:0',
+            'sumber_dana'     => 'required|in:cpp,cpw',
             'status'          => 'required|in:belum,dp_terbayar,lunas',
             'catatan'         => 'nullable|string',
         ]);
@@ -72,6 +73,7 @@ class BudgetController extends Controller
             'estimasi_budget' => 'required|integer|min:0',
             'dp'              => 'nullable|integer|min:0',
             'pelunasan'       => 'nullable|integer|min:0',
+            'sumber_dana'     => 'required|in:cpp,cpw',
             'status'          => 'required|in:belum,dp_terbayar,lunas',
             'catatan'         => 'nullable|string',
         ]);
@@ -80,6 +82,24 @@ class BudgetController extends Controller
         $data['pelunasan'] = $data['pelunasan'] ?? 0;
 
         $budget->update($data);
+        return redirect()->route('budget.index');
+    }
+
+    public function reorder(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:wedding_budget,id',
+        ]);
+
+        $wedding = $this->getWedding();
+
+        foreach ($data['ids'] as $index => $id) {
+            WeddingBudget::where('wedding_id', $wedding->id)
+                ->where('id', $id)
+                ->update(['no' => $index + 1]);
+        }
+
         return redirect()->route('budget.index');
     }
 

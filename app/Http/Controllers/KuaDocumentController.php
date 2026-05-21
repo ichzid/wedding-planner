@@ -17,7 +17,7 @@ class KuaDocumentController extends Controller
     public function index()
     {
         $wedding   = $this->getWedding();
-        $documents = $wedding->kuaDocuments()->get();
+        $documents = $wedding->kuaDocuments()->orderBy('no')->orderBy('id')->get();
 
         $totalBiaya = $documents->sum('biaya');
         $totalDok   = $documents->count();
@@ -67,6 +67,24 @@ class KuaDocumentController extends Controller
 
         $data['biaya'] = $data['biaya'] ?? 0;
         $dokumen_kua->update($data);
+        return redirect()->route('dokumen-kua.index');
+    }
+
+    public function reorder(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:kua_documents,id',
+        ]);
+
+        $wedding = $this->getWedding();
+
+        foreach ($data['ids'] as $index => $id) {
+            KuaDocument::where('wedding_id', $wedding->id)
+                ->where('id', $id)
+                ->update(['no' => $index + 1]);
+        }
+
         return redirect()->route('dokumen-kua.index');
     }
 

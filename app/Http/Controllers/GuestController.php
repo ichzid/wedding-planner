@@ -17,7 +17,7 @@ class GuestController extends Controller
     public function index()
     {
         $wedding = $this->getWedding();
-        $guests  = $wedding->guests()->get();
+        $guests  = $wedding->guests()->orderBy('no')->orderBy('id')->get();
 
         $totalTamu = $guests->count();
         $tamuCpw   = $guests->where('pihak', 'cpw')->count();
@@ -67,6 +67,24 @@ class GuestController extends Controller
         ]);
 
         $tamu->update($data);
+        return redirect()->route('tamu.index');
+    }
+
+    public function reorder(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:wedding_guests,id',
+        ]);
+
+        $wedding = $this->getWedding();
+
+        foreach ($data['ids'] as $index => $id) {
+            WeddingGuest::where('wedding_id', $wedding->id)
+                ->where('id', $id)
+                ->update(['no' => $index + 1]);
+        }
+
         return redirect()->route('tamu.index');
     }
 

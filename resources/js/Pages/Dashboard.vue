@@ -124,7 +124,7 @@
           </div>
           <div class="tamu-stat tamu-stat--cpp">
             <div class="tamu-stat__val">{{ props.tamuCpp }}</div>
-            <div class="tamu-stat__label">Pihak {{ props.namaCpp }}</div>
+            <div class="tamu-stat__label">Pihak Mempelai Pria</div>
           </div>
           <div class="tamu-stat tamu-stat--hadir">
             <div class="tamu-stat__val">{{ props.hadir }}</div>
@@ -188,7 +188,7 @@
       <!-- Budget Summary -->
       <div class="card budget-summary">
         <div class="section-header">
-          <h2 class="section-title">Ringkasan Budget</h2>
+          <h2 class="section-title"><i class="fa-solid fa-wallet" style="color:var(--rose);margin-right:8px;"></i>Ringkasan Budget</h2>
           <Link :href="route('budget.index')" class="btn btn--ghost btn--sm">
             Lihat semua <i class="fa-solid fa-arrow-right fa-xs"></i>
           </Link>
@@ -216,7 +216,7 @@
       <!-- Budget by category -->
       <div class="card kat-card">
         <div class="section-header">
-          <h2 class="section-title">Budget per Kategori</h2>
+          <h2 class="section-title"><i class="fa-solid fa-chart-pie" style="color:var(--rose);margin-right:8px;"></i>Budget per Kategori</h2>
         </div>
         <div class="kat-list">
           <div v-for="(data, kat) in props.budgetByKategori" :key="kat" class="kat-row">

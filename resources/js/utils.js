@@ -8,73 +8,30 @@ export function showToast(msg, type = 'success') {
   if (!container) {
     container = document.createElement('div');
     container.id = 'toast-container';
-    container.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      pointer-events: none;
-    `;
+    container.className = 'toast-container';
     document.body.appendChild(container);
   }
 
+  const normalizedType = ['success', 'error', 'info', 'warning'].includes(type) ? type : 'success';
   const icons = {
     success: 'fa-circle-check',
-    error:   'fa-circle-xmark',
-    info:    'fa-circle-info',
+    error: 'fa-circle-xmark',
+    info: 'fa-circle-info',
     warning: 'fa-triangle-exclamation',
   };
 
-  const bgColors = {
-    success: 'linear-gradient(135deg, #5a9e6f, #4a8b5e)',   // green tone
-    error:   'linear-gradient(135deg, #c75b5b, #b04a4a)',   // red tone
-    info:    'linear-gradient(135deg, #8b6f6a, #6b5550)',   // warm grey
-    warning: 'linear-gradient(135deg, #c4953e, #b08030)',   // amber
-  };
-
-  const accentColors = {
-    success: 'rgba(90,158,111,0.18)',
-    error:   'rgba(199,91,91,0.18)',
-    info:    'rgba(139,111,106,0.18)',
-    warning: 'rgba(196,149,62,0.18)',
-  };
-
   const el = document.createElement('div');
-  el.style.cssText = `
-    pointer-events: all;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 11px 16px;
-    border-radius: 10px;
-    color: #fff;
-    font-size: 13.5px;
-    font-weight: 500;
-    font-family: 'Inter', sans-serif;
-    box-shadow: 0 8px 24px rgba(74,44,42,0.15);
-    background: ${bgColors[type] || bgColors.success};
-    transform: translateX(20px);
-    opacity: 0;
-    transition: transform 0.3s ease, opacity 0.3s ease;
-    max-width: 360px;
-    border-left: 3px solid ${accentColors[type] || accentColors.success};
-  `;
-  el.innerHTML = `<i class="fa-solid ${icons[type] || icons.success}" style="font-size:14px;flex-shrink:0;opacity:0.9"></i><span>${msg}</span>`;
+  el.className = `toast toast--${normalizedType}`;
+  el.innerHTML = `<span class="toast__icon"><i class="fa-solid ${icons[normalizedType]}"></i></span><span class="toast__message"></span>`;
+  el.querySelector('.toast__message').textContent = msg;
   container.appendChild(el);
 
-  requestAnimationFrame(() => {
-    el.style.transform = 'translateX(0)';
-    el.style.opacity   = '1';
-  });
+  requestAnimationFrame(() => el.classList.add('toast--show'));
 
   setTimeout(() => {
-    el.style.transform = 'translateX(20px)';
-    el.style.opacity   = '0';
-    setTimeout(() => el.remove(), 300);
-  }, 3500);
+    el.classList.remove('toast--show');
+    setTimeout(() => el.remove(), 240);
+  }, 3200);
 }
 
 /**

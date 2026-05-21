@@ -18,6 +18,7 @@ return new class extends Migration
             $table->bigInteger('estimasi_budget')->default(0);
             $table->bigInteger('dp')->default(0);
             $table->bigInteger('pelunasan')->default(0);
+            $table->enum('sumber_dana', ['cpp', 'cpw'])->default('cpp');
             $table->enum('status', ['belum', 'dp_terbayar', 'lunas'])->default('belum');
             $table->text('catatan')->nullable();
             $table->timestamps();

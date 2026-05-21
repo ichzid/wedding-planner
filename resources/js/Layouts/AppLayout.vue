@@ -713,6 +713,49 @@ textarea.form-input { resize: none; }
   flex-direction: column;
   gap: var(--space-sm);
   pointer-events: none;
+  width: min(360px, calc(100vw - 32px));
+}
+.toast {
+  pointer-events: all;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.45;
+  box-shadow: var(--shadow-lg);
+  opacity: 0;
+  transform: translateX(18px);
+  transition: opacity 0.24s ease, transform 0.24s ease;
+}
+.toast--show { opacity: 1; transform: translateX(0); }
+.toast__icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 12px;
+}
+.toast__message { flex: 1; }
+.toast--success { border-color: var(--ok-border); background: var(--ok-bg); color: var(--ok-text); }
+.toast--success .toast__icon { background: var(--surface); color: var(--ok-text); }
+.toast--error { border-color: var(--danger-border); background: var(--danger-bg); color: var(--danger-text); }
+.toast--error .toast__icon { background: var(--surface); color: var(--danger-text); }
+.toast--warning { border-color: var(--warn-border); background: var(--warn-bg); color: var(--warn-text); }
+.toast--warning .toast__icon { background: var(--surface); color: var(--warn-text); }
+.toast--info { border-color: var(--border); background: var(--rose-pale); color: var(--text-muted); }
+.toast--info .toast__icon { background: var(--surface); color: var(--rose); }
+@media (max-width: 640px) {
+  .toast-container { top: var(--space-lg); right: var(--space-lg); left: var(--space-lg); width: auto; }
 }
 
 /* === CHECKBOX === */
@@ -774,6 +817,10 @@ input[type=checkbox] {
 }
 
 /* === UTILITY === */
+.action-icon { font-size: 13px; }
+.action-icon--copy { color: var(--text-dim); }
+.action-icon--edit { color: var(--text-dim); }
+.action-icon--delete { color: var(--text-dim); }
 .mt-2 { margin-top: var(--space-sm); }
 .mt-3 { margin-top: var(--space-md); }
 .mt-4 { margin-top: var(--space-lg); }

@@ -17,7 +17,7 @@ class SeserahanController extends Controller
     public function index(Request $request)
     {
         $wedding = $this->getWedding();
-        $items   = $wedding->seserahanList()->get();
+        $items   = $wedding->seserahanList()->orderBy('no')->orderBy('id')->get();
 
         $totalItem  = $items->count();
         $totalHarga = $items->sum(fn($i) => $i->qty * $i->harga);
@@ -39,7 +39,7 @@ class SeserahanController extends Controller
         $data = $request->validate([
             'kategori'  => 'required|string',
             'nama_item' => 'required|string|max:255',
-            'untuk'     => 'required|in:groom,bride',
+            'untuk'     => 'required|in:cpp,cpw',
             'qty'       => 'required|integer|min:1',
             'satuan'    => 'nullable|string|max:50',
             'harga'     => 'required|integer|min:0',
@@ -62,7 +62,7 @@ class SeserahanController extends Controller
         $data = $request->validate([
             'kategori'  => 'required|string',
             'nama_item' => 'required|string|max:255',
-            'untuk'     => 'required|in:groom,bride',
+            'untuk'     => 'required|in:cpp,cpw',
             'qty'       => 'required|integer|min:1',
             'satuan'    => 'nullable|string|max:50',
             'harga'     => 'required|integer|min:0',
@@ -70,6 +70,24 @@ class SeserahanController extends Controller
         ]);
 
         $seserahan->update($data);
+        return redirect()->route('seserahan.index');
+    }
+
+    public function reorder(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:seserahan_list,id',
+        ]);
+
+        $wedding = $this->getWedding();
+
+        foreach ($data['ids'] as $index => $id) {
+            SeserahanItem::where('wedding_id', $wedding->id)
+                ->where('id', $id)
+                ->update(['no' => $index + 1]);
+        }
+
         return redirect()->route('seserahan.index');
     }
 
