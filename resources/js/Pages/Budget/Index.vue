@@ -601,7 +601,7 @@ function confirmDelete(b) {
 .sub-th:first-child { border-left: 1px solid var(--border); }
 .sub-th:last-child { border-right: 1px solid var(--border); }
 
-.draggable-row { cursor: grab; position: relative; transition: background 0.18s ease, opacity 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease; touch-action: none; }
+.draggable-row { cursor: grab; position: relative; transition: background 0.18s ease, opacity 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease; }
 .draggable-row.is-dragging { opacity: 0.45; transform: scale(0.995); }
 .draggable-row.is-drop-target { background: var(--rose-pale); box-shadow: inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
 .draggable-row.is-drop-before { box-shadow: inset 0 3px 0 var(--rose), inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
@@ -620,7 +620,7 @@ function confirmDelete(b) {
 .draggable-row.is-drop-before td:first-child::before { top: -4px; }
 .draggable-row.is-drop-after td:first-child::after { bottom: -4px; }
 .draggable-row.is-drag-disabled { cursor: default; }
-.drag-cell { white-space: nowrap; }
+.drag-cell { white-space: nowrap; touch-action: none; }
 .drag-cell i { color: var(--text-dim); margin-right: 6px; }
 .is-drag-disabled .drag-cell i { opacity: 0.35; }
 

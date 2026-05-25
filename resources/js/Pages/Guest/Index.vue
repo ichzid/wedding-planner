@@ -502,7 +502,7 @@ function endDrag() {
 .toolbar__select { max-width: 180px; }
 @media (max-width: 640px) { .toolbar__select { max-width: none; width: 100%; } }
 
-.draggable-row { cursor: grab; position: relative; transition: background 0.18s ease, opacity 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease; touch-action: none; }
+.draggable-row { cursor: grab; position: relative; transition: background 0.18s ease, opacity 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease; }
 .draggable-row.is-dragging { opacity: 0.45; transform: scale(0.995); }
 .draggable-row.is-drop-target { background: var(--rose-pale); box-shadow: inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
 .draggable-row.is-drop-before { box-shadow: inset 0 3px 0 var(--rose), inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
@@ -512,7 +512,7 @@ function endDrag() {
 .draggable-row.is-drop-before td:first-child::before { top: -4px; }
 .draggable-row.is-drop-after td:first-child::after { bottom: -4px; }
 .draggable-row.is-drag-disabled { cursor: default; }
-.drag-cell { white-space: nowrap; }
+.drag-cell { white-space: nowrap; touch-action: none; }
 .drag-cell i { color: var(--text-dim); margin-right: 6px; }
 .is-drag-disabled .drag-cell i { opacity: 0.35; }
 .mono-text { font-family: monospace; font-size: 11px; color: var(--text-dim); }

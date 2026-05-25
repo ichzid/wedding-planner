@@ -455,7 +455,7 @@ function confirmDelete(item) {
 
 .checklist-dropzone { transition: box-shadow 0.18s ease, background 0.18s ease; }
 .checklist-dropzone--active { box-shadow: inset 0 0 0 2px var(--rose); background: var(--rose-pale); }
-.draggable-row { cursor: grab; position: relative; transition: background 0.18s ease, opacity 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease; touch-action: none; }
+.draggable-row { cursor: grab; position: relative; transition: background 0.18s ease, opacity 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease; }
 .draggable-row.is-dragging { opacity: 0.45; transform: scale(0.995); }
 .draggable-row.is-drop-target { background: var(--rose-pale); box-shadow: inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
 .draggable-row.is-drop-before { box-shadow: inset 0 3px 0 var(--rose), inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
@@ -465,7 +465,7 @@ function confirmDelete(item) {
 .draggable-row.is-drop-before::before { top: -4px; }
 .draggable-row.is-drop-after::after { bottom: -4px; }
 .draggable-row.is-drag-disabled { cursor: default; }
-.drag-cell { color: var(--text-dim); flex-shrink: 0; }
+.drag-cell { color: var(--text-dim); flex-shrink: 0; touch-action: none; }
 .is-drag-disabled .drag-cell { opacity: 0.35; }
 
 .group-section { margin-bottom: var(--space-lg); }
