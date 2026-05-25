@@ -43,11 +43,11 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/seserahan/reorder', [SeserahanController::class, 'reorder'])->name('seserahan.reorder');
 
         // KUA
-        Route::get('/kua', [KuaDocumentController::class, 'index'])->name('kua.index');
-        Route::post('/kua', [KuaDocumentController::class, 'store'])->name('kua.store');
-        Route::patch('/kua/reorder', [KuaDocumentController::class, 'reorder'])->name('kua.reorder');
-        Route::patch('/kua/{id}/toggle-cpw', [KuaDocumentController::class, 'toggleCpw'])->name('kua.toggle-cpw');
-        Route::patch('/kua/{id}/toggle-cpp', [KuaDocumentController::class, 'toggleCpp'])->name('kua.toggle-cpp');
+        Route::get('/dokumen-kua', [KuaDocumentController::class, 'index'])->name('dokumen-kua.index');
+        Route::post('/dokumen-kua', [KuaDocumentController::class, 'store'])->name('dokumen-kua.store');
+        Route::patch('/dokumen-kua/reorder', [KuaDocumentController::class, 'reorder'])->name('dokumen-kua.reorder');
+        Route::patch('/dokumen-kua/{id}/toggle-cpw', [KuaDocumentController::class, 'toggleCpw'])->name('dokumen-kua.toggle-cpw');
+        Route::patch('/dokumen-kua/{id}/toggle-cpp', [KuaDocumentController::class, 'toggleCpp'])->name('dokumen-kua.toggle-cpp');
 
         // Guests
         Route::get('/tamu', [GuestController::class, 'index'])->name('tamu.index');
