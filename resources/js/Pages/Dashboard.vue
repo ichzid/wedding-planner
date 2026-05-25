@@ -43,7 +43,7 @@
       <Link :href="route('budget.index')" class="stat-card stat-card--link stat-card--peach">
         <div class="stat-card__header">
           <div class="stat-card__icon"><i class="fa-solid fa-wallet"></i></div>
-          <i class="fa-solid fa-arrow-right stat-card__arrow"></i>
+          <i class="fa-solid fa-arrow-right stat-card__arrow"></i> 
         </div>
         <p class="stat-card__value">{{ props.progressBudget }}<span class="stat-card__total">%</span></p>
         <p class="stat-card__label">Budget Terbayar</p>

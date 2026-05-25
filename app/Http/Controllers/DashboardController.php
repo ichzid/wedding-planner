@@ -10,7 +10,7 @@ class DashboardController extends Controller
 {
     public function index()
     {
-        $wedding = Wedding::with(['budgets','seserahanList','checklists','kuaDocuments','guests'])->firstOrFail();
+        $wedding = Wedding::with(['budgets','seserahanList','checklists','kuaDocuments','guests'])->where('user_id', auth()->id())->firstOrFail();
 
         // Checklist stats
         $totalChecklist    = $wedding->checklists->count();

@@ -1,37 +1,64 @@
 <?php
 
-use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ChecklistController;
 use App\Http\Controllers\BudgetController;
-use App\Http\Controllers\SeserahanController;
-use App\Http\Controllers\KuaDocumentController;
+use App\Http\Controllers\ChecklistController;
 use App\Http\Controllers\GuestController;
+use App\Http\Controllers\KuaController;
+use App\Http\Controllers\SeserahanController;
+use App\Http\Controllers\OnboardingController;
+use Illuminate\Support\Facades\Route;
 
-Route::get('/', fn() => redirect('/dashboard'));
+Route::get('/', function () {
+    return redirect()->route('login');
+});
 
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+// Autentikasi rute-rute menggunakan middleware auth
+Route::middleware(['auth'])->group(function () {
+    
+    // Onboarding Routes
+    Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding');
+    Route::post('/onboarding', [OnboardingController::class, 'store'])->name('onboarding.store');
 
-// Checklist
-Route::patch('/checklist/reorder', [ChecklistController::class, 'reorder'])->name('checklist.reorder');
-Route::resource('checklist', ChecklistController::class)->only(['index','store','update','destroy']);
-Route::patch('/checklist/{checklist}/toggle', [ChecklistController::class, 'toggle'])->name('checklist.toggle');
+    // Main App Routes (membutuhkan data Wedding)
+    Route::middleware([\App\Http\Middleware\EnsureUserHasWedding::class])->group(function () {
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-// Budget
-Route::patch('/budget/reorder', [BudgetController::class, 'reorder'])->name('budget.reorder');
-Route::resource('budget', BudgetController::class)->only(['index','store','update','destroy']);
+        // Checklists
+        Route::get('/checklist', [ChecklistController::class, 'index'])->name('checklist.index');
+        Route::post('/checklist', [ChecklistController::class, 'store'])->name('checklist.store');
+        Route::patch('/checklist/reorder', [ChecklistController::class, 'reorder'])->name('checklist.reorder');
+        Route::patch('/checklist/{id}/toggle', [ChecklistController::class, 'toggleStatus'])->name('checklist.toggle');
 
-// Seserahan
-Route::patch('/seserahan/reorder', [SeserahanController::class, 'reorder'])->name('seserahan.reorder');
-Route::resource('seserahan', SeserahanController::class)->only(['index','store','update','destroy']);
-Route::patch('/seserahan/{seserahan}/toggle', [SeserahanController::class, 'toggle'])->name('seserahan.toggle');
+        // Budgets
+        Route::get('/budget', [BudgetController::class, 'index'])->name('budget.index');
+        Route::post('/budget', [BudgetController::class, 'store'])->name('budget.store');
+        Route::patch('/budget/reorder', [BudgetController::class, 'reorder'])->name('budget.reorder');
+        Route::put('/budget/{id}', [BudgetController::class, 'update'])->name('budget.update');
 
-// KUA Documents
-Route::patch('/dokumen-kua/reorder', [KuaDocumentController::class, 'reorder'])->name('kua.reorder');
-Route::resource('dokumen-kua', KuaDocumentController::class)->only(['index','store','update','destroy']);
-Route::patch('/dokumen-kua/{kuaDocument}/toggle-cpw', [KuaDocumentController::class, 'toggleCpw'])->name('kua.toggle-cpw');
-Route::patch('/dokumen-kua/{kuaDocument}/toggle-cpp', [KuaDocumentController::class, 'toggleCpp'])->name('kua.toggle-cpp');
+        // Seserahan
+        Route::get('/seserahan', [SeserahanController::class, 'index'])->name('seserahan.index');
+        Route::post('/seserahan', [SeserahanController::class, 'store'])->name('seserahan.store');
+        Route::patch('/seserahan/reorder', [SeserahanController::class, 'reorder'])->name('seserahan.reorder');
 
-// Daftar Tamu
-Route::patch('/tamu/reorder', [GuestController::class, 'reorder'])->name('tamu.reorder');
-Route::resource('tamu', GuestController::class)->only(['index','store','update','destroy']);
+        // KUA
+        Route::get('/kua', [KuaController::class, 'index'])->name('kua.index');
+        Route::post('/kua', [KuaController::class, 'store'])->name('kua.store');
+        Route::patch('/kua/reorder', [KuaController::class, 'reorder'])->name('kua.reorder');
+        Route::patch('/kua/{id}/toggle-cpw', [KuaController::class, 'toggleCpw'])->name('kua.toggle-cpw');
+        Route::patch('/kua/{id}/toggle-cpp', [KuaController::class, 'toggleCpp'])->name('kua.toggle-cpp');
+
+        // Guests
+        Route::get('/tamu', [GuestController::class, 'index'])->name('tamu.index');
+        Route::post('/tamu', [GuestController::class, 'store'])->name('tamu.store');
+        Route::patch('/tamu/reorder', [GuestController::class, 'reorder'])->name('tamu.reorder');
+    });
+
+    // Profile Routes (Bawaan Breeze)
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+require __DIR__.'/auth.php';

@@ -11,7 +11,7 @@ class GuestController extends Controller
 {
     private function getWedding(): Wedding
     {
-        return Wedding::firstOrFail();
+        return Wedding::where('user_id', auth()->id())->firstOrFail();
     }
 
     public function index()
