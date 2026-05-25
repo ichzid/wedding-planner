@@ -297,8 +297,7 @@ function startDrag(item, event) {
 
 function handleTouchStart(event) {
   if (!canDragRows.value) return;
-  const touch = event.touches[0];
-  const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+  const targetEl = event.target;
   if (!targetEl?.closest('.drag-cell')) return;
 
   const targetRow = targetEl.closest('.draggable-row');
@@ -465,7 +464,7 @@ function confirmDelete(item) {
 .draggable-row.is-drop-before::before { top: -4px; }
 .draggable-row.is-drop-after::after { bottom: -4px; }
 .draggable-row.is-drag-disabled { cursor: default; }
-.drag-cell { color: var(--text-dim); flex-shrink: 0; touch-action: none; }
+.drag-cell { color: var(--text-dim); flex-shrink: 0; touch-action: none; padding: 10px; cursor: grab; font-size: 16px; }
 .is-drag-disabled .drag-cell { opacity: 0.35; }
 
 .group-section { margin-bottom: var(--space-lg); }
