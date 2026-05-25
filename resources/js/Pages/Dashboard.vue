@@ -83,12 +83,12 @@
       <!-- Info Pernikahan -->
       <div class="card info-card">
         <div class="section-header">
-          <h2 class="section-title"><i class="fa-solid fa-rings-wedding" style="color:var(--rose);margin-right:8px;"></i>Info Pernikahan</h2>
+          <h2 class="section-title"><i class="fa-solid fa-heart" style="color:var(--rose);margin-right:8px;"></i>Info Pernikahan</h2>
         </div>
         <div class="info-list">
           <div class="info-item">
-            <span class="info-label"><i class="fa-solid fa-venus-mars"></i> Mempelai</span>
-            <span class="info-val">{{ props.namaCpw }} & {{ props.namaCpp }}</span>
+            <span class="info-label"><i class="fa-solid fa-ring"></i> Mempelai</span>
+            <span class="info-val">{{ props.namaCpw || '-' }} & {{ props.namaCpp || '-' }}</span>
           </div>
           <div class="info-item">
             <span class="info-label"><i class="fa-solid fa-calendar-days"></i> Tanggal</span>
@@ -96,11 +96,11 @@
           </div>
           <div class="info-item">
             <span class="info-label"><i class="fa-solid fa-mosque"></i> Akad</span>
-            <span class="info-val">{{ props.lokasiAkad }}</span>
+            <span class="info-val">{{ props.lokasiAkad || '-' }}</span>
           </div>
           <div class="info-item">
             <span class="info-label"><i class="fa-solid fa-champagne-glasses"></i> Resepsi</span>
-            <span class="info-val">{{ props.lokasiResepsi }}</span>
+            <span class="info-val">{{ props.lokasiResepsi || '-' }}</span>
           </div>
         </div>
       </div>

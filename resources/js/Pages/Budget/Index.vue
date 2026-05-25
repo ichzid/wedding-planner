@@ -95,6 +95,9 @@
               @dragover.prevent="setDragOver(b, index)"
               @drop="dropRow(index)"
               @dragend="endDrag"
+              @touchstart="handleTouchStart"
+              @touchmove="handleTouchMove"
+              @touchend="handleTouchEnd"
             >
               <td class="mono-text drag-cell"><i class="fa-solid fa-grip-vertical"></i> {{ b.no }}</td>
               <td><span class="chip chip--soft">{{ b.kategori }}</span></td>
@@ -438,7 +441,33 @@ function startDrag(item, index, event) {
   if (!canDragRows.value) return;
   draggedIndex.value = index;
   draggedId.value = item.id;
-  event.dataTransfer.effectAllowed = 'move';
+  if(event && event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+  }
+}
+
+function handleTouchStart(event) {
+  if (!canDragRows.value) return;
+  const touch = event.touches[0];
+  const targetRow = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.draggable-row');
+  if (targetRow) {
+      const b_index = Array.from(targetRow.parentNode.children).indexOf(targetRow);
+      const b_id = filteredBudgets.value[b_index].id;
+      startDrag(filteredBudgets.value[b_index], b_index, null);
+  }
+}
+
+function handleTouchMove(event) {
+    if(!canDragRows.value || draggedId.value === null) return;
+    event.preventDefault(); // Prevent scrolling while dragging
+    const touch = event.touches[0];
+    const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+    const targetRow = targetEl?.closest('.draggable-row');
+    if (targetRow) {
+        const index = Array.from(targetRow.parentNode.children).indexOf(targetRow);
+        const item = filteredBudgets.value[index];
+        setDragOver(item, index);
+    }
 }
 
 function setDragOver(item, index) {
@@ -475,6 +504,14 @@ function dropRow(targetIndex) {
   });
 
   endDrag();
+}
+
+function handleTouchEnd(event) {
+    if (draggedId.value !== null && dragOverIndex.value !== null) {
+        dropRow(dragOverIndex.value);
+    } else {
+        endDrag();
+    }
 }
 
 function endDrag() {
@@ -562,7 +599,7 @@ function confirmDelete(b) {
 .sub-th:first-child { border-left: 1px solid var(--border); }
 .sub-th:last-child { border-right: 1px solid var(--border); }
 
-.draggable-row { cursor: grab; position: relative; transition: background 0.18s ease, opacity 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease; }
+.draggable-row { cursor: grab; position: relative; transition: background 0.18s ease, opacity 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease; touch-action: none; }
 .draggable-row.is-dragging { opacity: 0.45; transform: scale(0.995); }
 .draggable-row.is-drop-target { background: var(--rose-pale); box-shadow: inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
 .draggable-row.is-drop-before { box-shadow: inset 0 3px 0 var(--rose), inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
