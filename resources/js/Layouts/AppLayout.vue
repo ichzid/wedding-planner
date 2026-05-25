@@ -128,12 +128,12 @@ const routeMap = {
 };
 
 const pageTitle = computed(() => {
-  const name = page.props.routeName;
+  const name = route().current();
   return routeMap[name] || null;
 });
 
 function isRoute(name) {
-  return page.props.routeName === name;
+  return route().current() === name;
 }
 
 const greeting = computed(() => {
