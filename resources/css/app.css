@@ -154,3 +154,10 @@ body {
 .text-dark { color: var(--text) !important; }
 .text-dim { color: var(--text-dim) !important; }
 
+.topbar__breadcrumb { display: flex; align-items: center; gap: 8px; color: var(--text-dim); }
+.breadcrumb-home { color: var(--text-dim); transition: color 0.15s ease; }
+.breadcrumb-home:hover { color: var(--rose); }
+.breadcrumb-sep { font-size: 10px; color: var(--border); }
+.breadcrumb-page { font-weight: 500; color: var(--text); }
+.topbar__greeting { display: none; }
+

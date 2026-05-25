@@ -2,7 +2,7 @@
   <Head>
       <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   </Head>
-  <div class="app-shell">
+  <div class="app-shell" @click="closeDropdowns">
     <!-- Sidebar -->
     <aside class="sidebar" :class="{ 'sidebar--open': sidebarOpen }">
       <!-- Brand -->
@@ -69,10 +69,27 @@
           <span>{{ greeting }}</span>
         </div>
 
-        <div class="topbar__right">
-          <span class="topbar__date">{{ currentDate }}</span>
-          <div class="topbar__avatar">
-            <i class="fa-solid fa-user"></i>
+        <div class="topbar__right relative">
+          <span class="topbar__date hidden-mobile">{{ currentDate }}</span>
+          
+          <div class="user-dropdown-container">
+            <button class="topbar__avatar" @click.stop="userMenuOpen = !userMenuOpen">
+              <i class="fa-solid fa-user"></i>
+            </button>
+            
+            <div v-if="userMenuOpen" class="user-dropdown">
+              <div class="user-dropdown-header">
+                <p class="user-dropdown-name">{{ $page.props.auth?.user?.name || 'Administrator' }}</p>
+                <p class="user-dropdown-email">{{ $page.props.auth?.user?.email || 'admin@example.com' }}</p>
+              </div>
+              <div class="user-dropdown-divider"></div>
+              <Link :href="route('profile.edit')" class="user-dropdown-item">
+                <i class="fa-solid fa-user-pen"></i> Pengaturan Profil
+              </Link>
+              <Link :href="route('logout')" method="post" as="button" class="user-dropdown-item text-danger">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i> Keluar
+              </Link>
+            </div>
           </div>
         </div>
       </header>
@@ -94,6 +111,11 @@ import { Head, Link, usePage } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
 
 const sidebarOpen = ref(false);
+const userMenuOpen = ref(false);
+
+const closeDropdowns = () => {
+    userMenuOpen.value = false;
+};
 
 const page = usePage();
 
@@ -370,7 +392,21 @@ body {
   min-width: 0;
 }
 
-/* === TOPBAR === */
+/* === DROPDOWN MENU === */
+.user-dropdown-container { position: relative; }
+.user-dropdown { position: absolute; right: 0; top: 120%; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; min-width: 200px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); z-index: 100; overflow: hidden; animation: slideDown 0.2s ease; }
+@keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+.user-dropdown-header { padding: 12px 16px; background: var(--rose-pale); }
+.user-dropdown-name { font-weight: 600; font-size: 14px; color: var(--text); margin: 0; }
+.user-dropdown-email { font-size: 12px; color: var(--text-muted); margin: 0; }
+.user-dropdown-divider { height: 1px; background: var(--border); }
+.user-dropdown-item { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 12px 16px; font-size: 13.5px; color: var(--text); border: none; background: transparent; cursor: pointer; transition: background 0.15s ease; text-decoration: none; }
+.user-dropdown-item:hover { background: var(--bg); color: var(--rose); }
+.user-dropdown-item i { width: 16px; text-align: center; color: var(--text-dim); }
+.user-dropdown-item:hover i { color: var(--rose); }
+.user-dropdown-item.text-danger { color: var(--danger-text); }
+.user-dropdown-item.text-danger:hover { background: var(--danger-bg); }
+.user-dropdown-item.text-danger i { color: var(--danger-text); }
 .topbar {
   height: var(--topbar-h);
   background: var(--surface);
