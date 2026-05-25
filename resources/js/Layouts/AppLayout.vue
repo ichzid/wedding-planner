@@ -65,11 +65,10 @@
           <span v-if="pageTitle" class="breadcrumb-page">{{ pageTitle }}</span>
         </div>
 
-        <div class="topbar__greeting">
-          <span>{{ greeting }}</span>
-        </div>
-
         <div class="topbar__right relative">
+          <div class="topbar__greeting">
+            <span>{{ greeting }}</span>
+          </div>
           <span class="topbar__date hidden-mobile">{{ currentDate }}</span>
           
           <div class="user-dropdown-container">
