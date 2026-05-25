@@ -5,7 +5,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\ChecklistController;
 use App\Http\Controllers\GuestController;
-use App\Http\Controllers\KuaController;
+use App\Http\Controllers\KuaDocumentController;
 use App\Http\Controllers\SeserahanController;
 use App\Http\Controllers\OnboardingController;
 use Illuminate\Support\Facades\Route;
@@ -43,11 +43,11 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/seserahan/reorder', [SeserahanController::class, 'reorder'])->name('seserahan.reorder');
 
         // KUA
-        Route::get('/kua', [KuaController::class, 'index'])->name('kua.index');
-        Route::post('/kua', [KuaController::class, 'store'])->name('kua.store');
-        Route::patch('/kua/reorder', [KuaController::class, 'reorder'])->name('kua.reorder');
-        Route::patch('/kua/{id}/toggle-cpw', [KuaController::class, 'toggleCpw'])->name('kua.toggle-cpw');
-        Route::patch('/kua/{id}/toggle-cpp', [KuaController::class, 'toggleCpp'])->name('kua.toggle-cpp');
+        Route::get('/kua', [KuaDocumentController::class, 'index'])->name('kua.index');
+        Route::post('/kua', [KuaDocumentController::class, 'store'])->name('kua.store');
+        Route::patch('/kua/reorder', [KuaDocumentController::class, 'reorder'])->name('kua.reorder');
+        Route::patch('/kua/{id}/toggle-cpw', [KuaDocumentController::class, 'toggleCpw'])->name('kua.toggle-cpw');
+        Route::patch('/kua/{id}/toggle-cpp', [KuaDocumentController::class, 'toggleCpp'])->name('kua.toggle-cpp');
 
         // Guests
         Route::get('/tamu', [GuestController::class, 'index'])->name('tamu.index');
