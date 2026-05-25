@@ -512,7 +512,7 @@ function endDrag() {
 .draggable-row.is-drop-after td:first-child::after { bottom: -4px; }
 .draggable-row.is-drag-disabled { cursor: default; }
 .drag-cell { white-space: nowrap; touch-action: none; padding: 12px; cursor: grab; }
-.drag-cell i { color: var(--text-dim); margin-right: 6px; font-size: 14px; }
+.drag-cell i { color: var(--text-dim); margin-right: 6px; font-size: 16px; }
 .is-drag-disabled .drag-cell i { opacity: 0.35; }
 .mono-text { font-family: monospace; font-size: 11px; color: var(--text-dim); }
 
