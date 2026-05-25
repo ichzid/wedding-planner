@@ -298,7 +298,10 @@ function startDrag(item, event) {
 function handleTouchStart(event) {
   if (!canDragRows.value) return;
   const touch = event.touches[0];
-  const targetRow = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.draggable-row');
+  const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (!targetEl?.closest('.drag-cell')) return;
+
+  const targetRow = targetEl.closest('.draggable-row');
   if (targetRow) {
       const parentGroup = targetRow.closest('.checklist-dropzone');
       const itemsInGroup = Array.from(parentGroup.children);

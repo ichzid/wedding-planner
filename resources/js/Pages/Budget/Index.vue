@@ -449,10 +449,12 @@ function startDrag(item, index, event) {
 function handleTouchStart(event) {
   if (!canDragRows.value) return;
   const touch = event.touches[0];
-  const targetRow = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('.draggable-row');
+  const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (!targetEl?.closest('.drag-cell')) return;
+
+  const targetRow = targetEl.closest('.draggable-row');
   if (targetRow) {
       const b_index = Array.from(targetRow.parentNode.children).indexOf(targetRow);
-      const b_id = filteredBudgets.value[b_index].id;
       startDrag(filteredBudgets.value[b_index], b_index, null);
   }
 }
