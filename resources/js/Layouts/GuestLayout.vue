@@ -1,8 +1,12 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
+import { Head } from '@inertiajs/vue3';
 </script>
 
 <template>
+    <Head>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    </Head>
     <div
         class="flex min-h-screen flex-col items-center pt-6 sm:justify-center sm:pt-0"
         style="background-color: var(--bg);"

@@ -1,4 +1,7 @@
 <template>
+  <Head>
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  </Head>
   <div class="app-shell">
     <!-- Sidebar -->
     <aside class="sidebar" :class="{ 'sidebar--open': sidebarOpen }">
@@ -87,7 +90,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
 
 const sidebarOpen = ref(false);
