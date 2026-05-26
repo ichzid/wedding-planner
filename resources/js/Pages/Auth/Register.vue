@@ -31,26 +31,26 @@ const submit = () => {
         <form @submit.prevent="submit" class="flex flex-col gap-2.5">
             <div>
                 <InputLabel for="name" value="Nama Lengkap" />
-                <TextInput id="name" type="text" class="form-input mt-1 py-1.5" v-model="form.name" required autofocus autocomplete="name" />
+                <TextInput id="name" type="text" class="mt-1" v-model="form.name" required autofocus autocomplete="name" />
                 <InputError class="mt-1" :message="form.errors.name" />
             </div>
 
             <div>
                 <InputLabel for="email" value="Email" />
-                <TextInput id="email" type="email" class="form-input mt-1 py-1.5" v-model="form.email" required autocomplete="username" />
+                <TextInput id="email" type="email" class="mt-1" v-model="form.email" required autocomplete="username" />
                 <InputError class="mt-1" :message="form.errors.email" />
             </div>
 
             <div class="grid grid-cols-2 gap-3">
                 <div>
                     <InputLabel for="password" value="Password" />
-                    <TextInput id="password" type="password" class="form-input mt-1 py-1.5" v-model="form.password" required autocomplete="new-password" />
+                    <TextInput id="password" type="password" class="mt-1" v-model="form.password" required autocomplete="new-password" />
                     <InputError class="mt-1" :message="form.errors.password" />
                 </div>
 
                 <div>
                     <InputLabel for="password_confirmation" value="Konfirmasi" />
-                    <TextInput id="password_confirmation" type="password" class="form-input mt-1 py-1.5" v-model="form.password_confirmation" required autocomplete="new-password" />
+                    <TextInput id="password_confirmation" type="password" class="mt-1" v-model="form.password_confirmation" required autocomplete="new-password" />
                     <InputError class="mt-1" :message="form.errors.password_confirmation" />
                 </div>
             </div>

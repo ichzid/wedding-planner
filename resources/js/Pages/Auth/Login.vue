@@ -43,7 +43,7 @@ const submit = () => {
                 <TextInput
                     id="email"
                     type="email"
-                    class="form-input mt-1 py-2"
+                    class="mt-1"
                     v-model="form.email"
                     required
                     autofocus
@@ -59,7 +59,7 @@ const submit = () => {
                 <TextInput
                     id="password"
                     type="password"
-                    class="form-input mt-1 py-2"
+                    class="mt-1"
                     v-model="form.password"
                     required
                     autocomplete="current-password"

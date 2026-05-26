@@ -1,5 +1,12 @@
 <script setup>
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
+
+const props = defineProps({
+    type: {
+        type: String,
+        default: 'text',
+    }
+});
 
 const model = defineModel({
     type: String,
@@ -7,6 +14,18 @@ const model = defineModel({
 });
 
 const input = ref(null);
+const isPasswordVisible = ref(false);
+
+const inputType = computed(() => {
+    if (props.type === 'password') {
+        return isPasswordVisible.value ? 'text' : 'password';
+    }
+    return props.type;
+});
+
+const togglePasswordVisibility = () => {
+    isPasswordVisible.value = !isPasswordVisible.value;
+};
 
 onMounted(() => {
     if (input.value.hasAttribute('autofocus')) {
@@ -18,9 +37,29 @@ defineExpose({ focus: () => input.value.focus() });
 </script>
 
 <template>
-    <input
-        class="rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:focus:border-indigo-600 dark:focus:ring-indigo-600"
-        v-model="model"
-        ref="input"
-    />
+    <div class="relative w-full">
+        <input
+            :type="inputType"
+            class="w-full form-input py-1.5"
+            v-model="model"
+            ref="input"
+            v-bind="$attrs"
+        />
+        <button
+            v-if="props.type === 'password'"
+            type="button"
+            class="absolute inset-y-0 right-0 flex items-center pr-3 focus:outline-none"
+            style="color: var(--text-dim);"
+            @click="togglePasswordVisibility"
+            tabindex="-1"
+        >
+            <i class="fa-solid" :class="isPasswordVisible ? 'fa-eye-slash' : 'fa-eye'"></i>
+        </button>
+    </div>
 </template>
+
+<script>
+export default {
+    inheritAttrs: false
+}
+</script>
