@@ -68,36 +68,37 @@ const submit = () => {
                 <InputError class="mt-2" :message="form.errors.password" />
             </div>
 
-            <div class="flex items-center justify-between">
+            <div class="flex items-center justify-between mt-2">
                 <label class="flex items-center">
                     <Checkbox name="remember" v-model:checked="form.remember" />
-                    <span class="ms-2 text-sm text-gray-600">Remember me</span>
+                    <span class="ms-2 text-sm" style="color: var(--text-muted)">Ingat saya</span>
                 </label>
 
                 <Link
                     v-if="canResetPassword"
                     :href="route('password.request')"
-                    class="text-sm font-medium text-[var(--rose)] hover:text-[var(--rose-light)] focus:outline-none"
+                    class="text-sm font-medium hover:underline"
+                    style="color: var(--rose)"
                 >
-                    Forgot password?
+                    Lupa password?
                 </Link>
             </div>
 
-            <div class="mt-2">
+            <div class="mt-4">
                 <button
                     type="submit"
                     class="btn-primary"
                     :class="{ 'opacity-50 cursor-wait': form.processing }"
                     :disabled="form.processing"
                 >
-                    Log in
+                    Masuk
                 </button>
             </div>
             
-            <p class="text-center text-sm text-gray-600 mt-2">
-                Don't have an account? 
-                <Link :href="route('register')" class="font-medium text-[var(--rose)] hover:text-[var(--rose-light)]">
-                    Register
+            <p class="text-center text-sm mt-4" style="color: var(--text-muted)">
+                Belum punya akun? 
+                <Link :href="route('register')" class="font-medium hover:underline" style="color: var(--rose)">
+                    Daftar di sini
                 </Link>
             </p>
         </form>
