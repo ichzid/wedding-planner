@@ -88,4 +88,41 @@ body {
   background: #b8845c;
   transform: translateY(-1px);
 }
+
+.btn-outline {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.btn-outline:hover {
+  background: var(--bg);
+  border-color: var(--text-dim);
+  transform: translateY(-1px);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 13px;
+  margin: 24px 0 16px;
+}
+.auth-divider::before, .auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border);
+}
+.auth-divider:not(:empty)::before { margin-right: 12px; }
+.auth-divider:not(:empty)::after { margin-left: 12px; }
 </style>
