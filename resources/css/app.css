@@ -3,6 +3,12 @@
 @tailwind components;
 @tailwind utilities;
 
+/* === GLOBAL RESET & BASE === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+a { text-decoration: none; color: inherit; }
+button { background: none; border: none; font: inherit; cursor: pointer; outline: none; }
+ul, ol { list-style: none; }
+
 /* Global CSS */
 #nprogress { pointer-events: none; }
 #nprogress .bar { background: #1a1a18; position: fixed; z-index: 9999; top: 0; left: 0; width: 100%; height: 2px; }

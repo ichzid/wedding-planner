@@ -68,8 +68,8 @@ const submit = () => {
                 <InputError class="mt-2" :message="form.errors.password" />
             </div>
 
-            <div class="flex items-center justify-between mt-2">
-                <label class="flex items-center">
+            <div class="flex items-center justify-between mt-4">
+                <label class="flex items-center cursor-pointer">
                     <Checkbox name="remember" v-model:checked="form.remember" />
                     <span class="ms-2 text-sm" style="color: var(--text-muted)">Ingat saya</span>
                 </label>
@@ -77,17 +77,17 @@ const submit = () => {
                 <Link
                     v-if="canResetPassword"
                     :href="route('password.request')"
-                    class="text-sm font-medium hover:underline"
+                    class="text-sm font-medium hover:underline focus:outline-none"
                     style="color: var(--rose)"
                 >
                     Lupa password?
                 </Link>
             </div>
 
-            <div class="mt-4">
+            <div class="mt-6">
                 <button
                     type="submit"
-                    class="btn-primary"
+                    class="btn-primary w-full py-3 text-base font-semibold"
                     :class="{ 'opacity-50 cursor-wait': form.processing }"
                     :disabled="form.processing"
                 >
@@ -95,9 +95,9 @@ const submit = () => {
                 </button>
             </div>
             
-            <p class="text-center text-sm mt-4" style="color: var(--text-muted)">
+            <p class="text-center text-sm mt-6" style="color: var(--text-muted)">
                 Belum punya akun? 
-                <Link :href="route('register')" class="font-medium hover:underline" style="color: var(--rose)">
+                <Link :href="route('register')" class="font-medium hover:underline focus:outline-none" style="color: var(--rose)">
                     Daftar di sini
                 </Link>
             </p>

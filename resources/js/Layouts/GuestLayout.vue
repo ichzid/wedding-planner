@@ -8,21 +8,21 @@ import { Head } from '@inertiajs/vue3';
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     </Head>
     <div
-        class="flex min-h-screen flex-col items-center pt-6 sm:justify-center sm:pt-0"
+        class="flex min-h-screen flex-col items-center justify-center pt-6 px-4 sm:pt-0"
         style="background-color: var(--bg);"
     >
-        <div>
-            <Link href="/" class="flex flex-col items-center gap-2">
-                <img src="/logo.png" alt="Logo" class="h-20 w-20 object-contain rounded-lg shadow-sm" />
+        <div class="mb-6">
+            <Link href="/" class="flex flex-col items-center gap-3">
+                <img src="/logo.png" alt="Logo" class="h-24 w-24 object-contain rounded-xl shadow-sm" />
                 <div class="text-center">
-                    <h1 style="font-family: var(--font-display); color: var(--text);" class="text-2xl font-bold tracking-tight">Wedding Planner</h1>
-                    <p style="color: var(--text-muted);" class="text-sm">Hari Istimewamu</p>
+                    <h1 style="font-family: var(--font-display); color: var(--text);" class="text-3xl font-bold tracking-tight">Wedding Planner</h1>
+                    <p style="color: var(--text-muted);" class="text-sm mt-1">Hari Istimewamu</p>
                 </div>
             </Link>
         </div>
 
         <div
-            class="mt-8 w-full overflow-hidden px-6 py-8 shadow-lg sm:max-w-md sm:rounded-xl"
+            class="w-full overflow-hidden px-8 py-10 shadow-xl sm:max-w-md sm:rounded-2xl"
             style="background-color: var(--surface); border: 1px solid var(--border);"
         >
             <slot />

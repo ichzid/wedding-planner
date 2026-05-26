@@ -96,10 +96,10 @@ const submit = () => {
                 />
             </div>
 
-            <div class="mt-4">
+            <div class="mt-6">
                 <button
                     type="submit"
-                    class="btn-primary"
+                    class="btn-primary w-full py-3 text-base font-semibold"
                     :class="{ 'opacity-50 cursor-wait': form.processing }"
                     :disabled="form.processing"
                 >
@@ -107,11 +107,11 @@ const submit = () => {
                 </button>
             </div>
 
-            <p class="text-center text-sm mt-2" style="color: var(--text-muted)">
+            <p class="text-center text-sm mt-4" style="color: var(--text-muted)">
                 Sudah punya akun? 
                 <Link
                     :href="route('login')"
-                    class="font-medium hover:underline"
+                    class="font-medium hover:underline focus:outline-none"
                     style="color: var(--rose)"
                 >
                     Log in di sini
