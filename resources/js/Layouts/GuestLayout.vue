@@ -8,20 +8,20 @@ import { Head } from '@inertiajs/vue3';
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     </Head>
     <div
-        class="flex min-h-screen flex-col items-center justify-center px-4"
+        class="flex min-h-screen flex-col items-center justify-center px-4 py-2"
         style="background-color: var(--bg);"
     >
-        <div class="mb-4">
-            <Link href="/" class="flex flex-col items-center gap-2">
-                <img src="/logo.png" alt="Logo" class="h-16 w-16 object-contain rounded-xl shadow-sm" />
+        <div class="mb-3">
+            <Link href="/" class="flex flex-col items-center gap-1">
+                <img src="/logo.png" alt="Logo" class="h-12 w-12 object-contain rounded-xl shadow-sm" />
                 <div class="text-center">
-                    <h1 style="font-family: var(--font-display); color: var(--text);" class="text-2xl font-bold tracking-tight">Wedding Planner</h1>
+                    <h1 style="font-family: var(--font-display); color: var(--text);" class="text-xl font-bold tracking-tight">Wedding Planner</h1>
                 </div>
             </Link>
         </div>
 
         <div
-            class="w-full overflow-hidden px-6 py-6 shadow-xl sm:max-w-md sm:rounded-2xl"
+            class="w-full overflow-hidden px-5 py-5 shadow-xl sm:max-w-md sm:rounded-2xl"
             style="background-color: var(--surface); border: 1px solid var(--border);"
         >
             <slot />

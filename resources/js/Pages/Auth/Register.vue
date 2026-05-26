@@ -23,83 +23,42 @@ const submit = () => {
     <GuestLayout>
         <Head title="Register" />
 
-        <div class="mb-4 text-center">
-            <h2 class="text-xl font-semibold" style="color: var(--text)">Buat Akun Baru</h2>
-            <p class="text-xs mt-1" style="color: var(--text-muted)">Mulai persiapkan hari bahagiamu hari ini</p>
+        <div class="mb-3 text-center">
+            <h2 class="text-lg font-semibold" style="color: var(--text)">Buat Akun Baru</h2>
+            <p class="text-xs mt-0.5" style="color: var(--text-muted)">Mulai persiapkan hari bahagiamu</p>
         </div>
 
-        <form @submit.prevent="submit" class="flex flex-col gap-3">
+        <form @submit.prevent="submit" class="flex flex-col gap-2.5">
             <div>
                 <InputLabel for="name" value="Nama Lengkap" />
-
-                <TextInput
-                    id="name"
-                    type="text"
-                    class="form-input mt-1 py-1.5"
-                    v-model="form.name"
-                    required
-                    autofocus
-                    autocomplete="name"
-                />
-
+                <TextInput id="name" type="text" class="form-input mt-1 py-1.5" v-model="form.name" required autofocus autocomplete="name" />
                 <InputError class="mt-1" :message="form.errors.name" />
             </div>
 
             <div>
                 <InputLabel for="email" value="Email" />
-
-                <TextInput
-                    id="email"
-                    type="email"
-                    class="form-input mt-1 py-1.5"
-                    v-model="form.email"
-                    required
-                    autocomplete="username"
-                />
-
+                <TextInput id="email" type="email" class="form-input mt-1 py-1.5" v-model="form.email" required autocomplete="username" />
                 <InputError class="mt-1" :message="form.errors.email" />
             </div>
 
-            <div>
-                <InputLabel for="password" value="Password" />
+            <div class="grid grid-cols-2 gap-3">
+                <div>
+                    <InputLabel for="password" value="Password" />
+                    <TextInput id="password" type="password" class="form-input mt-1 py-1.5" v-model="form.password" required autocomplete="new-password" />
+                    <InputError class="mt-1" :message="form.errors.password" />
+                </div>
 
-                <TextInput
-                    id="password"
-                    type="password"
-                    class="form-input mt-1 py-1.5"
-                    v-model="form.password"
-                    required
-                    autocomplete="new-password"
-                />
-
-                <InputError class="mt-1" :message="form.errors.password" />
+                <div>
+                    <InputLabel for="password_confirmation" value="Konfirmasi" />
+                    <TextInput id="password_confirmation" type="password" class="form-input mt-1 py-1.5" v-model="form.password_confirmation" required autocomplete="new-password" />
+                    <InputError class="mt-1" :message="form.errors.password_confirmation" />
+                </div>
             </div>
 
-            <div>
-                <InputLabel
-                    for="password_confirmation"
-                    value="Konfirmasi Password"
-                />
-
-                <TextInput
-                    id="password_confirmation"
-                    type="password"
-                    class="form-input mt-1 py-1.5"
-                    v-model="form.password_confirmation"
-                    required
-                    autocomplete="new-password"
-                />
-
-                <InputError
-                    class="mt-1"
-                    :message="form.errors.password_confirmation"
-                />
-            </div>
-
-            <div class="mt-2">
+            <div class="mt-1">
                 <button
                     type="submit"
-                    class="btn-primary w-full py-2.5 text-sm font-semibold"
+                    class="btn-primary w-full py-2 text-sm font-semibold"
                     :class="{ 'opacity-50 cursor-wait': form.processing }"
                     :disabled="form.processing"
                 >
@@ -107,7 +66,7 @@ const submit = () => {
                 </button>
             </div>
 
-            <div class="auth-divider !my-3">Atau daftar dengan</div>
+            <div class="auth-divider !my-2">Atau daftar dengan</div>
 
             <a :href="route('register')" class="btn-outline py-2 text-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="16px" height="16px">
