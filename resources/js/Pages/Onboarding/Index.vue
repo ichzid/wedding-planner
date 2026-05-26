@@ -51,7 +51,7 @@ const submitAuto = () => {
         <Head title="Setup Pernikahan" />
 
         <div class="text-center mb-6 relative">
-            <div class="step-indicator mb-3">
+            <div class="step-indicator mb-4">
                 <span class="step-dot" :class="{'active': step >= 1}"></span>
                 <span class="step-line" :class="{'active': step >= 2}"></span>
                 <span class="step-dot" :class="{'active': step >= 2}"></span>
@@ -64,17 +64,17 @@ const submitAuto = () => {
                     <h2 class="text-xl font-bold" style="color: var(--text); font-family: var(--font-display);">
                         {{ step === 1 ? 'Ceritakan Tentang Pernikahanmu' : (step === 2 ? 'Pilih Cara Memulai' : 'Personalisasi Otomatis') }}
                     </h2>
-                    <p class="text-sm mt-1.5" style="color: var(--text-muted);">
+                    <p class="text-sm mt-1" style="color: var(--text-muted);">
                         {{ step === 1 ? 'Langkah pertama untuk merencanakan hari bahagiamu.' : (step === 2 ? 'Kami bisa membantumu membuat kerangka rencana.' : 'Masukkan estimasi budget untuk dibuatkan rinciannya.') }}
                     </p>
                 </div>
             </transition>
         </div>
 
-        <div class="relative overflow-hidden min-h-[300px]">
+        <div class="relative overflow-visible" :style="{ minHeight: step === 1 ? '310px' : (step === 2 ? '240px' : '280px'), transition: 'min-height 0.3s ease' }">
             <transition :name="transitionName">
                 <!-- STEP 1: Basic Info -->
-                <div v-if="step === 1" class="absolute w-full flex flex-col gap-4">
+                <div v-if="step === 1" class="absolute w-full top-0 flex flex-col gap-4">
                     <div>
                         <InputLabel for="nama_cpw" value="Nama Panggilan Mempelai Wanita" />
                         <TextInput id="nama_cpw" type="text" class="mt-1" v-model="form.nama_cpw" required placeholder="Contoh: Triana" />
@@ -99,7 +99,7 @@ const submitAuto = () => {
                 </div>
 
                 <!-- STEP 2: Choose Setup Type -->
-                <div v-else-if="step === 2" class="absolute w-full flex flex-col gap-4">
+                <div v-else-if="step === 2" class="absolute w-full top-0 flex flex-col gap-4">
                     <button @click="selectSetup('auto')" type="button" class="setup-card relative overflow-hidden group">
                         <div class="absolute top-0 right-0 bg-[var(--rose)] text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg">REKOMENDASI</div>
                         <div class="setup-icon group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
@@ -123,7 +123,7 @@ const submitAuto = () => {
                 </div>
 
                 <!-- STEP 3: Auto Setup Inputs -->
-                <div v-else-if="step === 3" class="absolute w-full flex flex-col gap-4">
+                <div v-else-if="step === 3" class="absolute w-full top-0 flex flex-col gap-4">
                     <div class="info-alert mb-2">
                         <i class="fa-solid fa-circle-info mt-0.5"></i>
                         <p class="text-xs leading-relaxed">
