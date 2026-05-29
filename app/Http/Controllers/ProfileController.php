@@ -18,10 +18,35 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        // Get the wedding info associated with the user
+        $wedding = \App\Models\Wedding::where('user_id', Auth::id())->first();
+
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            'wedding' => $wedding,
         ]);
+    }
+
+    /**
+     * Update the user's wedding information.
+     */
+    public function updateWedding(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'nama_cpw' => 'required|string|max:255',
+            'nama_cpp' => 'required|string|max:255',
+            'tanggal_nikah' => 'required|date',
+            'lokasi_akad' => 'nullable|string|max:255',
+            'lokasi_resepsi' => 'nullable|string|max:255',
+        ]);
+
+        $wedding = \App\Models\Wedding::where('user_id', Auth::id())->first();
+        if ($wedding) {
+            $wedding->update($validated);
+        }
+
+        return Redirect::route('profile.edit')->with('status', 'wedding-updated');
     }
 
     /**

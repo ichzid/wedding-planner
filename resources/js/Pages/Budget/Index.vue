@@ -49,6 +49,10 @@
       <button v-if="filterKategori || filterStatus || searchQuery || sortBy" class="btn btn--outline btn--sm" @click="resetFilters">
         <i class="fa-solid fa-xmark"></i> Reset
       </button>
+      <button class="btn btn--outline" @click="exportToExcel">
+        <i class="fa-solid fa-file-excel" style="color: #2e7d32;"></i>
+        Export Excel
+      </button>
     </div>
 
     <!-- Table -->
@@ -331,6 +335,62 @@ const progressPct = computed(() => {
 
 function formatRp(n) {
   return 'Rp' + Number(n || 0).toLocaleString('id-ID');
+}
+
+function exportToExcel() {
+  if (filteredBudgets.value.length === 0) {
+    showToast('Tidak ada data untuk diexport');
+    return;
+  }
+
+  const headers = ['No', 'Kategori', 'Item / Vendor', 'Sumber Dana', 'Est. Budget', 'DP', 'Pelunasan', 'Sisa', 'Status', 'Catatan'];
+  
+  const rows = filteredBudgets.value.map((b, index) => [
+    b.no || index + 1,
+    `"${(b.kategori || '').replace(/"/g, '""')}"`,
+    `"${(b.item || '')}${(b.vendor ? ' - ' + b.vendor : '')}"`,
+    `"${b.sumber_dana === 'cpw' ? 'Mempelai Wanita' : 'Mempelai Pria'}"`,
+    b.estimasi_budget,
+    b.dp,
+    b.pelunasan,
+    (b.estimasi_budget - b.dp - b.pelunasan),
+    `"${props.statusOptions[b.status] || b.status}"`,
+    `"${(b.catatan || '').replace(/"/g, '""')}"`
+  ]);
+  
+  // Add total row
+  rows.push([
+    '""',
+    '"TOTAL"',
+    '""',
+    '""',
+    filteredTotalEstimasi.value,
+    filteredTotalDp.value,
+    filteredTotalPelunasan.value,
+    filteredTotalSisa.value,
+    '""',
+    '""'
+  ]);
+  
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.join(','))
+  ].join('\n');
+  
+  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  
+  const date = new Date().toISOString().split('T')[0];
+  link.setAttribute('href', url);
+  link.setAttribute('download', `Wedding_Budget_${date}.csv`);
+  link.style.visibility = 'hidden';
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  showToast('Data berhasil diexport ke Excel/CSV');
 }
 
 function statusChip(s) {

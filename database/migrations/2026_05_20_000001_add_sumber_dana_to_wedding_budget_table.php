@@ -8,9 +8,13 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('wedding_budget', function (Blueprint $table) {
-            $table->enum('sumber_dana', ['cpp', 'cpw'])->default('cpp')->after('pelunasan');
-        });
+        if (!Schema::hasColumn('wedding_budget', 'sumber_dana')) {
+            Schema::table('wedding_budget', function (Blueprint $table) {
+                $table->enum('sumber_dana', ['cpp', 'cpw'])
+                      ->default('cpp')
+                      ->after('pelunasan');
+            });
+        }
     }
 
     public function down(): void

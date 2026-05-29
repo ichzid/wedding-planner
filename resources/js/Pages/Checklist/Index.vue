@@ -39,6 +39,10 @@
       <button v-if="filterBulan || filterStatus || searchQuery" class="btn btn--outline btn--sm" @click="resetFilters">
         <i class="fa-solid fa-xmark"></i> Reset
       </button>
+      <button class="btn btn--outline" @click="exportToExcel">
+        <i class="fa-solid fa-file-excel" style="color: #2e7d32;"></i>
+        Export Excel
+      </button>
     </div>
 
     <!-- Grouped list -->
@@ -232,6 +236,43 @@ function resetFilters() {
   searchQuery.value  = '';
   filterBulan.value  = '';
   filterStatus.value = '';
+}
+
+function exportToExcel() {
+  if (filteredItems.value.length === 0) {
+    showToast('Tidak ada data untuk diexport');
+    return;
+  }
+
+  const headers = ['No', 'Bulan/Target', 'Tugas', 'Detail', 'Status'];
+  
+  const rows = filteredItems.value.map((item, index) => [
+    item.no || index + 1,
+    `"${(item.bulan_range || '').replace(/"/g, '""')}"`,
+    `"${(item.persiapan || '').replace(/"/g, '""')}"`,
+    `"${(item.detail || '').replace(/"/g, '""')}"`,
+    `"${item.status ? 'Selesai' : 'Belum'}"`
+  ]);
+  
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.join(','))
+  ].join('\n');
+  
+  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  
+  const date = new Date().toISOString().split('T')[0];
+  link.setAttribute('href', url);
+  link.setAttribute('download', `Checklist_Pernikahan_${date}.csv`);
+  link.style.visibility = 'hidden';
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  showToast('Data berhasil diexport ke Excel/CSV');
 }
 
 function openCreate() {

@@ -47,6 +47,10 @@
       <button v-if="filterStatus || searchQuery" class="btn btn--outline btn--sm" @click="resetFilters">
         <i class="fa-solid fa-xmark"></i> Reset
       </button>
+      <button class="btn btn--outline" @click="exportToExcel">
+        <i class="fa-solid fa-file-excel" style="color: #2e7d32;"></i>
+        Export Excel
+      </button>
     </div>
 
     <!-- Table -->
@@ -278,6 +282,59 @@ const filteredTotalHarga = computed(() => filteredItems.value.reduce((sum, i) =>
 
 function formatRp(n) {
   return 'Rp' + Number(n || 0).toLocaleString('id-ID');
+}
+
+function exportToExcel() {
+  if (filteredItems.value.length === 0) {
+    showToast('Tidak ada data untuk diexport');
+    return;
+  }
+
+  const headers = ['No', 'Kategori', 'Nama Item', 'Untuk', 'Qty', 'Satuan', 'Harga Satuan', 'Total', 'Status'];
+  
+  const rows = filteredItems.value.map((i, index) => [
+    i.no || index + 1,
+    `"${(i.kategori || '').replace(/"/g, '""')}"`,
+    `"${(i.nama_item || '').replace(/"/g, '""')}"`,
+    `"${untukLabel(i.untuk)}"`,
+    i.qty,
+    `"${(i.satuan || '').replace(/"/g, '""')}"`,
+    i.harga,
+    (i.qty * i.harga),
+    `"${i.status === 'sudah_dibeli' ? 'Sudah Dibeli' : 'Belum Dibeli'}"`
+  ]);
+  
+  rows.push([
+    '""',
+    '"TOTAL"',
+    '""',
+    '""',
+    '""',
+    '""',
+    '""',
+    filteredTotalHarga.value,
+    '""'
+  ]);
+  
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.join(','))
+  ].join('\n');
+  
+  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  
+  const date = new Date().toISOString().split('T')[0];
+  link.setAttribute('href', url);
+  link.setAttribute('download', `List_Seserahan_${date}.csv`);
+  link.style.visibility = 'hidden';
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  showToast('Data berhasil diexport ke Excel/CSV');
 }
 
 function resetFilters() {

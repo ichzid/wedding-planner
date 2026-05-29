@@ -55,9 +55,10 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/tamu/reorder', [GuestController::class, 'reorder'])->name('tamu.reorder');
     });
 
-    // Profile Routes (Bawaan Breeze)
+    // Profile Routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('/profile/wedding', [ProfileController::class, 'updateWedding'])->name('profile.wedding.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 

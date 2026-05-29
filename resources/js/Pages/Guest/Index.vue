@@ -59,6 +59,10 @@
         <option value="hadir">Konfirmasi Hadir</option>
         <option value="tidak_hadir">Tidak Hadir</option>
       </select>
+      <button class="btn btn--outline" @click="exportToExcel">
+        <i class="fa-solid fa-file-excel" style="color: #2e7d32;"></i>
+        Export Excel
+      </button>
     </div>
 
     <!-- Table -->
@@ -360,6 +364,48 @@ function statusChipClass(status) {
   if (status === 'tidak_hadir')  return 'chip--danger';
   if (status === 'sudah_dikirim') return 'chip--warn';
   return 'chip--soft';
+}
+
+function exportToExcel() {
+  if (filteredGuests.value.length === 0) {
+    showToast('Tidak ada data untuk diexport');
+    return;
+  }
+
+  // Define headers
+  const headers = ['No', 'Nama Tamu', 'Pihak', 'Status Undangan', 'Catatan'];
+  
+  // Format data
+  const rows = filteredGuests.value.map((guest, index) => [
+    guest.no || index + 1,
+    `"${(guest.nama_tamu || '').replace(/"/g, '""')}"`,
+    `"${pihakLabel(guest.pihak)}"`,
+    `"${statusLabel(guest.status)}"`,
+    `"${(guest.catatan || '').replace(/"/g, '""')}"`
+  ]);
+  
+  // Combine headers and rows
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.join(','))
+  ].join('\n');
+  
+  // Create download link
+  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  
+  // Create filename with current date
+  const date = new Date().toISOString().split('T')[0];
+  link.setAttribute('href', url);
+  link.setAttribute('download', `Daftar_Tamu_${date}.csv`);
+  link.style.visibility = 'hidden';
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  showToast('Data berhasil diexport ke Excel/CSV');
 }
 
 function startDrag(item, index, event) {

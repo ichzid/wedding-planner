@@ -43,11 +43,15 @@
       </div>
       <select v-model="filterStatus" class="form-input toolbar__select">
         <option value="">Semua Status</option>
-        <option value="done">Selesai</option>
-        <option value="pending">Belum Lengkap</option>
+        <option value="done">Selesai Kedua Pihak</option>
+        <option value="pending">Belum Selesai</option>
       </select>
-      <button v-if="searchQuery || filterStatus" class="btn btn--outline btn--sm" @click="resetFilters">
+      <button v-if="filterStatus || searchQuery" class="btn btn--outline btn--sm" @click="resetFilters">
         <i class="fa-solid fa-xmark"></i> Reset
+      </button>
+      <button class="btn btn--outline" @click="exportToExcel">
+        <i class="fa-solid fa-file-excel" style="color: #2e7d32;"></i>
+        Export Excel
       </button>
     </div>
 
@@ -221,6 +225,54 @@ const canDragRows = computed(() => !searchQuery.value && !filterStatus.value);
 
 function formatRp(n) {
   return 'Rp' + Number(n || 0).toLocaleString('id-ID');
+}
+
+function exportToExcel() {
+  if (filteredDocuments.value.length === 0) {
+    showToast('Tidak ada data untuk diexport');
+    return;
+  }
+
+  const headers = ['No', 'Nama Dokumen', 'Status CPW', 'Status CPP', 'Biaya', 'Catatan'];
+  
+  const rows = filteredDocuments.value.map((doc, index) => [
+    doc.no || index + 1,
+    `"${(doc.nama_dokumen || '').replace(/"/g, '""')}"`,
+    `"${doc.cpw_status ? 'Selesai' : 'Belum'}"`,
+    `"${doc.cpp_status ? 'Selesai' : 'Belum'}"`,
+    doc.biaya || 0,
+    `"${(doc.catatan || '').replace(/"/g, '""')}"`
+  ]);
+  
+  const totalBiayaFiltered = filteredDocuments.value.reduce((sum, d) => sum + (Number(d.biaya) || 0), 0);
+  rows.push([
+    '"TOTAL"',
+    '""',
+    '""',
+    '""',
+    totalBiayaFiltered,
+    '""'
+  ]);
+  
+  const csvContent = [
+    headers.join(','),
+    ...rows.map(row => row.join(','))
+  ].join('\n');
+  
+  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  
+  const date = new Date().toISOString().split('T')[0];
+  link.setAttribute('href', url);
+  link.setAttribute('download', `Dokumen_KUA_${date}.csv`);
+  link.style.visibility = 'hidden';
+  
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  showToast('Data berhasil diexport ke Excel/CSV');
 }
 
 function resetFilters() {

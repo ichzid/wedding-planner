@@ -43,6 +43,15 @@
           <i class="fa-solid fa-users nav-icon"></i>
           <span>Daftar Tamu</span>
         </Link>
+        <span class="nav-label" style="margin-top: 15px;">Pengaturan</span>
+        <Link :href="route('profile.edit')" class="nav-link" :class="{ 'nav-link--active': isRoute('profile.edit') }">
+          <i class="fa-solid fa-user-gear nav-icon"></i>
+          <span>Pengaturan Akun</span>
+        </Link>
+        <Link :href="route('logout')" method="post" as="button" class="nav-link" style="width: 100%; text-align: left;">
+          <i class="fa-solid fa-arrow-right-from-bracket nav-icon"></i>
+          <span>Keluar</span>
+        </Link>
       </nav>
     </aside>
 
@@ -125,6 +134,7 @@ const routeMap = {
   'seserahan.index': 'List Seserahan',
   'dokumen-kua.index': 'Dokumen KUA',
   'tamu.index': 'Daftar Tamu',
+  'profile.edit': 'Pengaturan Akun',
 };
 
 const pageTitle = computed(() => {
@@ -578,8 +588,10 @@ body {
 .btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   padding: 8px 16px;
+  height: 38px;
   border-radius: var(--radius-sm);
   font-size: 13.5px;
   font-weight: 600;
@@ -618,6 +630,7 @@ body {
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--border);
+  height: 38px;
 }
 .btn--outline:hover:not(:disabled) {
   background: var(--rose-pale);
@@ -652,6 +665,7 @@ body {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   padding: 8px 11px;
+  height: 38px;
   font-size: 14px;
   font-family: var(--font);
   color: var(--text);
@@ -673,7 +687,8 @@ select.form-input {
   background-size: 14px;
   padding-right: 36px;
 }
-textarea.form-input { resize: none; }
+textarea.form-input { resize: none; height: auto; min-height: 80px; }
+.search-input { padding-left: 30px; height: 38px; }
 
 .form-label {
   display: block;
@@ -863,4 +878,5 @@ input[type=checkbox] {
 .mt-3 { margin-top: var(--space-md); }
 .mt-4 { margin-top: var(--space-lg); }
 .text-center { text-align: center; }
+.toolbar__select { max-width: 180px; height: 38px; }
 </style>
