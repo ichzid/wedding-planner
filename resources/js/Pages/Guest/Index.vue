@@ -412,9 +412,9 @@ function exportToExcel() {
   ];
 
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Daftar Tamu");
+  XLSX.utils.book_append_sheet(wb, ws, "Daftar Undangan");
   
-  XLSX.writeFile(wb, `Daftar_Tamu_${dateNow.toISOString().split('T')[0]}.xlsx`);
+  XLSX.writeFile(wb, `Daftar_Undangan_${dateNow.toISOString().split('T')[0]}.xlsx`);
   showToast('Data berhasil diexport ke Excel');
 }
 
