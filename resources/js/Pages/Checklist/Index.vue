@@ -148,6 +148,7 @@ import { Head, router } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { showToast, confirmDeleteDialog } from '@/utils.js';
+import * as XLSX from 'xlsx';
 
 const props = defineProps({
   checklists: Object,
@@ -244,35 +245,49 @@ function exportToExcel() {
     return;
   }
 
+  const dateNow = new Date();
+  const dateStr = dateNow.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
   const headers = ['No', 'Bulan/Target', 'Tugas', 'Detail', 'Status'];
   
-  const rows = filteredItems.value.map((item, index) => [
+  const dataRows = filteredItems.value.map((item, index) => [
     item.no || index + 1,
-    `"${(item.bulan_range || '').replace(/"/g, '""')}"`,
-    `"${(item.persiapan || '').replace(/"/g, '""')}"`,
-    `"${(item.detail || '').replace(/"/g, '""')}"`,
-    `"${item.status ? 'Selesai' : 'Belum'}"`
+    item.bulan_range || '',
+    item.persiapan || '',
+    item.detail || '',
+    item.status ? 'Selesai' : 'Belum'
   ]);
   
-  const csvContent = [
-    headers.join(','),
-    ...rows.map(row => row.join(','))
-  ].join('\n');
+  const finalData = [
+    ['DAFTAR CHECKLIST PERNIKAHAN'],
+    [`Dicetak pada: ${dateStr}`],
+    [], // empty row
+    headers,
+    ...dataRows
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet(finalData);
   
-  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
+  // Merge cells for title
+  ws['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }, // Merge A1:E1
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 4 } }  // Merge A2:E2
+  ];
+
+  // Set column widths
+  ws['!cols'] = [
+    { wch: 5 },  // No
+    { wch: 20 }, // Bulan/Target
+    { wch: 40 }, // Tugas
+    { wch: 40 }, // Detail
+    { wch: 15 }  // Status
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Checklist");
   
-  const date = new Date().toISOString().split('T')[0];
-  link.setAttribute('href', url);
-  link.setAttribute('download', `Checklist_Pernikahan_${date}.csv`);
-  link.style.visibility = 'hidden';
-  
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  
-  showToast('Data berhasil diexport ke Excel/CSV');
+  XLSX.writeFile(wb, `Checklist_Pernikahan_${dateNow.toISOString().split('T')[0]}.xlsx`);
+  showToast('Data berhasil diexport ke Excel');
 }
 
 function openCreate() {

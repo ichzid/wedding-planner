@@ -219,6 +219,7 @@ import { Head, router } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { showToast, confirmDeleteDialog } from '@/utils.js';
+import * as XLSX from 'xlsx';
 
 const props = defineProps({
   items: Array,
@@ -290,51 +291,69 @@ function exportToExcel() {
     return;
   }
 
+  const dateNow = new Date();
+  const dateStr = dateNow.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
   const headers = ['No', 'Kategori', 'Nama Item', 'Untuk', 'Qty', 'Satuan', 'Harga Satuan', 'Total', 'Status'];
   
-  const rows = filteredItems.value.map((i, index) => [
+  const dataRows = filteredItems.value.map((i, index) => [
     i.no || index + 1,
-    `"${(i.kategori || '').replace(/"/g, '""')}"`,
-    `"${(i.nama_item || '').replace(/"/g, '""')}"`,
-    `"${untukLabel(i.untuk)}"`,
-    i.qty,
-    `"${(i.satuan || '').replace(/"/g, '""')}"`,
-    i.harga,
-    (i.qty * i.harga),
-    `"${i.status === 'sudah_dibeli' ? 'Sudah Dibeli' : 'Belum Dibeli'}"`
+    i.kategori || '',
+    i.nama_item || '',
+    untukLabel(i.untuk),
+    i.qty || 0,
+    i.satuan || '',
+    i.harga || 0,
+    (i.qty || 0) * (i.harga || 0),
+    i.status === 'sudah_dibeli' ? 'Sudah Dibeli' : 'Belum Dibeli'
   ]);
   
-  rows.push([
-    '""',
-    '"TOTAL"',
-    '""',
-    '""',
-    '""',
-    '""',
-    '""',
+  dataRows.push([
+    '',
+    'TOTAL',
+    '',
+    '',
+    '',
+    '',
+    '',
     filteredTotalHarga.value,
-    '""'
+    ''
   ]);
+
+  const finalData = [
+    ['DAFTAR LIST SESERAHAN'],
+    [`Dicetak pada: ${dateStr}`],
+    [], // empty row
+    headers,
+    ...dataRows
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet(finalData);
   
-  const csvContent = [
-    headers.join(','),
-    ...rows.map(row => row.join(','))
-  ].join('\n');
+  // Merge cells for title
+  ws['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } }, // Merge A1:I1
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } }  // Merge A2:I2
+  ];
+
+  // Set column widths
+  ws['!cols'] = [
+    { wch: 5 },  // No
+    { wch: 20 }, // Kategori
+    { wch: 30 }, // Nama Item
+    { wch: 20 }, // Untuk
+    { wch: 10 }, // Qty
+    { wch: 15 }, // Satuan
+    { wch: 20 }, // Harga Satuan
+    { wch: 20 }, // Total
+    { wch: 20 }  // Status
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "List Seserahan");
   
-  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  
-  const date = new Date().toISOString().split('T')[0];
-  link.setAttribute('href', url);
-  link.setAttribute('download', `List_Seserahan_${date}.csv`);
-  link.style.visibility = 'hidden';
-  
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  
-  showToast('Data berhasil diexport ke Excel/CSV');
+  XLSX.writeFile(wb, `List_Seserahan_${dateNow.toISOString().split('T')[0]}.xlsx`);
+  showToast('Data berhasil diexport ke Excel');
 }
 
 function resetFilters() {

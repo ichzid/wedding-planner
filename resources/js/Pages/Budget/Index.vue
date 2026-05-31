@@ -247,6 +247,7 @@ import { Head, router } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { showToast, confirmDeleteDialog } from '@/utils.js';
+import * as XLSX from 'xlsx';
 
 const props = defineProps({
   budgets: Array,
@@ -343,54 +344,73 @@ function exportToExcel() {
     return;
   }
 
+  const dateNow = new Date();
+  const dateStr = dateNow.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
   const headers = ['No', 'Kategori', 'Item / Vendor', 'Sumber Dana', 'Est. Budget', 'DP', 'Pelunasan', 'Sisa', 'Status', 'Catatan'];
   
-  const rows = filteredBudgets.value.map((b, index) => [
+  const dataRows = filteredBudgets.value.map((b, index) => [
     b.no || index + 1,
-    `"${(b.kategori || '').replace(/"/g, '""')}"`,
-    `"${(b.item || '')}${(b.vendor ? ' - ' + b.vendor : '')}"`,
-    `"${b.sumber_dana === 'cpw' ? 'Mempelai Wanita' : 'Mempelai Pria'}"`,
-    b.estimasi_budget,
-    b.dp,
-    b.pelunasan,
-    (b.estimasi_budget - b.dp - b.pelunasan),
-    `"${props.statusOptions[b.status] || b.status}"`,
-    `"${(b.catatan || '').replace(/"/g, '""')}"`
+    b.kategori || '',
+    (b.item || '') + (b.vendor ? ' - ' + b.vendor : ''),
+    b.sumber_dana === 'cpw' ? 'Mempelai Wanita' : 'Mempelai Pria',
+    b.estimasi_budget || 0,
+    b.dp || 0,
+    b.pelunasan || 0,
+    (b.estimasi_budget || 0) - (b.dp || 0) - (b.pelunasan || 0),
+    props.statusOptions[b.status] || b.status,
+    b.catatan || ''
   ]);
   
   // Add total row
-  rows.push([
-    '""',
-    '"TOTAL"',
-    '""',
-    '""',
+  dataRows.push([
+    '',
+    'TOTAL',
+    '',
+    '',
     filteredTotalEstimasi.value,
     filteredTotalDp.value,
     filteredTotalPelunasan.value,
     filteredTotalSisa.value,
-    '""',
-    '""'
+    '',
+    ''
   ]);
   
-  const csvContent = [
-    headers.join(','),
-    ...rows.map(row => row.join(','))
-  ].join('\n');
+  const finalData = [
+    ['DAFTAR WEDDING BUDGET'],
+    [`Dicetak pada: ${dateStr}`],
+    [], // empty row
+    headers,
+    ...dataRows
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet(finalData);
   
-  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
+  // Merge cells for title
+  ws['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 9 } }, // Merge A1:J1
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 9 } }  // Merge A2:J2
+  ];
+
+  // Set column widths
+  ws['!cols'] = [
+    { wch: 5 },  // No
+    { wch: 20 }, // Kategori
+    { wch: 30 }, // Item/Vendor
+    { wch: 20 }, // Sumber Dana
+    { wch: 15 }, // Est Budget
+    { wch: 15 }, // DP
+    { wch: 15 }, // Pelunasan
+    { wch: 15 }, // Sisa
+    { wch: 15 }, // Status
+    { wch: 30 }  // Catatan
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Wedding Budget");
   
-  const date = new Date().toISOString().split('T')[0];
-  link.setAttribute('href', url);
-  link.setAttribute('download', `Wedding_Budget_${date}.csv`);
-  link.style.visibility = 'hidden';
-  
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  
-  showToast('Data berhasil diexport ke Excel/CSV');
+  XLSX.writeFile(wb, `Wedding_Budget_${dateNow.toISOString().split('T')[0]}.xlsx`);
+  showToast('Data berhasil diexport ke Excel');
 }
 
 function statusChip(s) {

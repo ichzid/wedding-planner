@@ -235,6 +235,7 @@ import { Head, router } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { showToast } from '@/utils.js';
+import * as XLSX from 'xlsx';
 
 const props = defineProps({
   guests:    Array,
@@ -372,40 +373,49 @@ function exportToExcel() {
     return;
   }
 
-  // Define headers
+  const dateNow = new Date();
+  const dateStr = dateNow.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
   const headers = ['No', 'Nama Tamu', 'Pihak', 'Status Undangan', 'Catatan'];
   
-  // Format data
-  const rows = filteredGuests.value.map((guest, index) => [
+  const dataRows = filteredGuests.value.map((guest, index) => [
     guest.no || index + 1,
-    `"${(guest.nama_tamu || '').replace(/"/g, '""')}"`,
-    `"${pihakLabel(guest.pihak)}"`,
-    `"${statusLabel(guest.status)}"`,
-    `"${(guest.catatan || '').replace(/"/g, '""')}"`
+    guest.nama_tamu || '',
+    pihakLabel(guest.pihak),
+    statusLabel(guest.status),
+    guest.catatan || ''
   ]);
   
-  // Combine headers and rows
-  const csvContent = [
-    headers.join(','),
-    ...rows.map(row => row.join(','))
-  ].join('\n');
+  const finalData = [
+    ['DAFTAR TAMU UNDANGAN PERNIKAHAN'],
+    [`Dicetak pada: ${dateStr}`],
+    [], // empty row
+    headers,
+    ...dataRows
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet(finalData);
   
-  // Create download link
-  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
+  // Merge cells for title
+  ws['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }, // Merge A1:E1
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 4 } }  // Merge A2:E2
+  ];
+
+  // Set column widths
+  ws['!cols'] = [
+    { wch: 5 },  // No
+    { wch: 30 }, // Nama Tamu
+    { wch: 25 }, // Pihak
+    { wch: 20 }, // Status
+    { wch: 40 }  // Catatan
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Daftar Tamu");
   
-  // Create filename with current date
-  const date = new Date().toISOString().split('T')[0];
-  link.setAttribute('href', url);
-  link.setAttribute('download', `Daftar_Tamu_${date}.csv`);
-  link.style.visibility = 'hidden';
-  
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  
-  showToast('Data berhasil diexport ke Excel/CSV');
+  XLSX.writeFile(wb, `Daftar_Tamu_${dateNow.toISOString().split('T')[0]}.xlsx`);
+  showToast('Data berhasil diexport ke Excel');
 }
 
 function startDrag(item, index, event) {

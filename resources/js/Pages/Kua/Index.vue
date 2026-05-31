@@ -178,6 +178,7 @@ import { Head, router } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
 import AppLayout from '@/Layouts/AppLayout.vue';
 import { showToast, confirmDeleteDialog } from '@/utils.js';
+import * as XLSX from 'xlsx';
 
 const props = defineProps({
   documents: Array,
