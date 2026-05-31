@@ -301,6 +301,7 @@ function openEdit(item) {
 
 function closeModal() {
   showModal.value = false;
+  editItem.value = null;
   copyItem.value = null;
 }
 

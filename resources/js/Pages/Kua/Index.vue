@@ -298,10 +298,12 @@ function openEdit(doc) {
   editItem.value = doc;
   copyItem.value = null;
   form.value = { nama_dokumen: doc.nama_dokumen, biaya: doc.biaya || '', catatan: doc.catatan || '' };
-  errors.value = {}; showModal.value = true;
+  errors.value = {}; 
+  showModal.value = true;
 }
 function closeModal() {
   showModal.value = false;
+  editItem.value = null;
   copyItem.value = null;
 }
 

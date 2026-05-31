@@ -452,7 +452,17 @@ function openCreate() {
 function openCopy(b) {
   editItem.value = null;
   copyItem.value = b;
-  form.value     = budgetToForm(b);
+  form.value     = {
+    kategori:        b.kategori,
+    sumber_dana:     b.sumber_dana || 'cpp',
+    status:          b.status,
+    item:            b.item,
+    vendor:          b.vendor || '',
+    estimasi_budget: b.estimasi_budget,
+    dp:              b.dp,
+    pelunasan:       b.pelunasan,
+    catatan:         b.catatan || '',
+  };
   errors.value   = {};
   showModal.value = true;
 }
@@ -460,13 +470,24 @@ function openCopy(b) {
 function openEdit(b) {
   editItem.value = b;
   copyItem.value = null;
-  form.value = budgetToForm(b);
+  form.value = {
+    kategori:        b.kategori,
+    sumber_dana:     b.sumber_dana || 'cpp',
+    status:          b.status,
+    item:            b.item,
+    vendor:          b.vendor || '',
+    estimasi_budget: b.estimasi_budget,
+    dp:              b.dp,
+    pelunasan:       b.pelunasan,
+    catatan:         b.catatan || '',
+  };
   errors.value   = {};
   showModal.value = true;
 }
 
 function closeModal() {
   showModal.value = false;
+  editItem.value = null;
   copyItem.value = null;
 }
 
