@@ -108,7 +108,7 @@
       <!-- Ringkasan Tamu -->
       <div class="card tamu-card">
         <div class="section-header">
-          <h2 class="section-title"><i class="fa-solid fa-users" style="color:var(--rose);margin-right:8px;"></i>Daftar Tamu</h2>
+          <h2 class="section-title"><i class="fa-solid fa-users" style="color:var(--rose);margin-right:8px;"></i>Daftar Undangan</h2>
           <Link :href="route('tamu.index')" class="btn btn--ghost btn--sm">
             Lihat semua <i class="fa-solid fa-arrow-right fa-xs"></i>
           </Link>
@@ -120,15 +120,15 @@
           </div>
           <div class="tamu-stat tamu-stat--cpw">
             <div class="tamu-stat__val">{{ props.tamuCpw }}</div>
-            <div class="tamu-stat__label">Pihak {{ props.namaCpw }}</div>
+            <div class="tamu-stat__label">Pihak Wanita</div>
           </div>
           <div class="tamu-stat tamu-stat--cpp">
             <div class="tamu-stat__val">{{ props.tamuCpp }}</div>
-            <div class="tamu-stat__label">Pihak Mempelai Pria</div>
+            <div class="tamu-stat__label">Pihak Pria</div>
           </div>
           <div class="tamu-stat tamu-stat--hadir">
             <div class="tamu-stat__val">{{ props.hadir }}</div>
-            <div class="tamu-stat__label">Konfirmasi Hadir</div>
+            <div class="tamu-stat__label">Hadir</div>
           </div>
         </div>
         <!-- Progress hadir -->
@@ -479,8 +479,8 @@ function getPct(data) {
 .tamu-stats {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 0;
-  padding: 14px 20px 12px;
+  gap: var(--space-md);
+  padding: 0 var(--space-xl) var(--space-lg);
 }
 .tamu-stat { text-align: center; padding: 8px 4px; }
 .tamu-stat__val { font-size: 22px; font-weight: 800; color: var(--text); line-height: 1; }
@@ -529,19 +529,19 @@ function getPct(data) {
 
 /* === BUDGET SUMMARY === */
 .budget-summary { overflow: hidden; }
-.budget-figures { display: flex; gap: 0; padding: var(--space-lg) var(--space-xl) 0; }
+.budget-figures { display: flex; flex-wrap: wrap; gap: var(--space-md); padding: var(--space-lg) var(--space-xl) 0; }
 .budget-figure {
   flex: 1;
+  min-width: 120px;
   padding-right: var(--space-lg);
   border-right: 1px solid var(--border);
-  margin-right: var(--space-lg);
 }
 .budget-figure:last-child { border-right: none; margin-right: 0; padding-right: 0; }
 .budget-figure__label {
   font-size: 12px; font-weight: 600; color: var(--text-muted);
   letter-spacing: 0.02em; margin-bottom: 4px;
 }
-.budget-figure__value { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
+.budget-figure__value { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .budget-figure__value--muted { color: var(--text-muted); }
 .mx-4 { margin-left: var(--space-xl); margin-right: var(--space-xl); }
 .prog-label {
