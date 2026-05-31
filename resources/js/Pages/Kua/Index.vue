@@ -234,46 +234,61 @@ function exportToExcel() {
     return;
   }
 
+  const dateNow = new Date();
+  const dateStr = dateNow.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
   const headers = ['No', 'Nama Dokumen', 'Status CPW', 'Status CPP', 'Biaya', 'Catatan'];
   
-  const rows = filteredDocuments.value.map((doc, index) => [
+  const dataRows = filteredDocuments.value.map((doc, index) => [
     doc.no || index + 1,
-    `"${(doc.nama_dokumen || '').replace(/"/g, '""')}"`,
-    `"${doc.cpw_status ? 'Selesai' : 'Belum'}"`,
-    `"${doc.cpp_status ? 'Selesai' : 'Belum'}"`,
+    doc.nama_dokumen || '',
+    doc.cpw_status ? 'Selesai' : 'Belum',
+    doc.cpp_status ? 'Selesai' : 'Belum',
     doc.biaya || 0,
-    `"${(doc.catatan || '').replace(/"/g, '""')}"`
+    doc.catatan || ''
   ]);
   
   const totalBiayaFiltered = filteredDocuments.value.reduce((sum, d) => sum + (Number(d.biaya) || 0), 0);
-  rows.push([
-    '"TOTAL"',
-    '""',
-    '""',
-    '""',
+  dataRows.push([
+    '',
+    'TOTAL',
+    '',
+    '',
     totalBiayaFiltered,
-    '""'
+    ''
   ]);
   
-  const csvContent = [
-    headers.join(','),
-    ...rows.map(row => row.join(','))
-  ].join('\n');
+  const finalData = [
+    ['DAFTAR DOKUMEN KUA'],
+    [`Dicetak pada: ${dateStr}`],
+    [], // empty row
+    headers,
+    ...dataRows
+  ];
+
+  const ws = XLSX.utils.aoa_to_sheet(finalData);
   
-  const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
+  // Merge cells for title
+  ws['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, // Merge A1:F1
+    { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } }  // Merge A2:F2
+  ];
+
+  // Set column widths
+  ws['!cols'] = [
+    { wch: 5 },  // No
+    { wch: 40 }, // Nama Dokumen
+    { wch: 15 }, // Status CPW
+    { wch: 15 }, // Status CPP
+    { wch: 15 }, // Biaya
+    { wch: 40 }  // Catatan
+  ];
+
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Dokumen KUA");
   
-  const date = new Date().toISOString().split('T')[0];
-  link.setAttribute('href', url);
-  link.setAttribute('download', `Dokumen_KUA_${date}.csv`);
-  link.style.visibility = 'hidden';
-  
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  
-  showToast('Data berhasil diexport ke Excel/CSV');
+  XLSX.writeFile(wb, `Dokumen_KUA_${dateNow.toISOString().split('T')[0]}.xlsx`);
+  showToast('Data berhasil diexport ke Excel');
 }
 
 function resetFilters() {
