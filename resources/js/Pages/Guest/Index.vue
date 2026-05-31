@@ -1,12 +1,12 @@
 <template>
   <AppLayout>
-    <Head title="Daftar Tamu" />
+    <Head title="Daftar Undangan" />
     <div>
     <!-- Page Header -->
     <div class="page-header">
       <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px;">
         <div>
-          <h1 class="page-title">Daftar Tamu</h1>
+          <h1 class="page-title">Daftar Undangan</h1>
           <p class="page-sub">Kelola undangan tamu pernikahan Anda</p>
         </div>
         <button class="btn btn--primary" @click="openAdd">
@@ -70,7 +70,7 @@
       <div class="section-header">
         <span class="section-title">
           <i class="fa-solid fa-list" style="color:var(--rose); margin-right:8px;"></i>
-          Daftar Tamu ({{ filteredGuests.length }})
+          Daftar Undangan ({{ filteredGuests.length }})
         </span>
       </div>
       <div style="overflow-x:auto;">

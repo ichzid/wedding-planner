@@ -41,7 +41,7 @@
         </Link>
         <Link :href="route('tamu.index')" class="nav-link" :class="{ 'nav-link--active': isRoute('tamu.index') }">
           <i class="fa-solid fa-users nav-icon"></i>
-          <span>Daftar Tamu</span>
+          <span>Daftar Undangan</span>
         </Link>
         <span class="nav-label" style="margin-top: 15px;">Pengaturan</span>
         <Link :href="route('profile.edit')" class="nav-link" :class="{ 'nav-link--active': isRoute('profile.edit') }">
@@ -133,7 +133,7 @@ const routeMap = {
   'budget.index': 'Wedding Budget',
   'seserahan.index': 'List Seserahan',
   'dokumen-kua.index': 'Dokumen KUA',
-  'tamu.index': 'Daftar Tamu',
+  'tamu.index': 'Daftar Undangan',
   'profile.edit': 'Pengaturan Akun',
 };
 
