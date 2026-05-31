@@ -310,7 +310,8 @@ body {
   display: flex;
   align-items: center;
   gap: var(--space-md);
-  padding: var(--space-xl) 18px;
+  padding: 0 18px;
+  height: var(--topbar-h);
   border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
