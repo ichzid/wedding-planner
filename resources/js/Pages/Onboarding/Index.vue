@@ -133,9 +133,9 @@ const submitAuto = () => {
                 <!-- STEP 2: Choose Setup Type -->
                 <div v-else-if="step === 2" class="absolute w-full top-0 flex flex-col gap-4">
                     <button @click="selectSetup('auto')" type="button" class="setup-card relative overflow-hidden group" :class="{ 'selected': form.setup_type === 'auto' }">
-                        <div class="absolute top-0 right-0 bg-[var(--rose)] text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg">REKOMENDASI</div>
-                        <div class="setup-icon group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
-                        <div class="setup-text">
+                        <div class="absolute top-0 right-0 bg-[var(--rose)] text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg z-10">REKOMENDASI</div>
+                        <div class="setup-icon group-hover:scale-110 transition-transform duration-300 mt-1"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+                        <div class="setup-text pt-2">
                             <h3 class="font-bold text-base text-[var(--text)]">Bantu Buatkan Otomatis</h3>
                             <p class="text-xs text-[var(--text-muted)] mt-1.5 leading-relaxed">Sistem akan memecah budget dan membuat checklist otomatis berdasarkan tanggal.</p>
                         </div>
