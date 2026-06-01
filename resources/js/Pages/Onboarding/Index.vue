@@ -33,7 +33,12 @@ const prevStep = () => {
 
 const selectSetup = (type) => {
     form.setup_type = type;
-    if (type === 'manual') {
+};
+
+const handleStep2Next = () => {
+    if (!form.setup_type) return;
+
+    if (form.setup_type === 'manual') {
         form.post(route('onboarding.store'));
     } else {
         transitionName.value = 'slide-left';
@@ -71,7 +76,7 @@ const submitAuto = () => {
             </transition>
         </div>
 
-        <div class="relative overflow-visible" :style="{ height: step === 1 ? '340px' : (step === 2 ? '250px' : '310px'), transition: 'height 0.4s ease' }">
+        <div class="relative overflow-visible" :style="{ height: step === 1 ? '340px' : (step === 2 ? '360px' : '310px'), transition: 'height 0.4s ease' }">
             <transition :name="transitionName">
                 <!-- STEP 1: Basic Info -->
                 <div v-if="step === 1" class="absolute w-full top-0 flex flex-col gap-4">
@@ -100,7 +105,7 @@ const submitAuto = () => {
 
                 <!-- STEP 2: Choose Setup Type -->
                 <div v-else-if="step === 2" class="absolute w-full top-0 flex flex-col gap-4">
-                    <button @click="selectSetup('auto')" type="button" class="setup-card relative overflow-hidden group">
+                    <button @click="selectSetup('auto')" type="button" class="setup-card relative overflow-hidden group" :class="{ 'selected': form.setup_type === 'auto' }">
                         <div class="absolute top-0 right-0 bg-[var(--rose)] text-white text-[10px] font-bold px-2 py-1 rounded-bl-lg">REKOMENDASI</div>
                         <div class="setup-icon group-hover:scale-110 transition-transform duration-300"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
                         <div class="setup-text">
@@ -109,15 +114,19 @@ const submitAuto = () => {
                         </div>
                     </button>
 
-                    <button @click="selectSetup('manual')" type="button" class="setup-card" :class="{ 'opacity-50 cursor-wait': form.processing }">
-                        <div class="setup-icon !bg-gray-100 !text-gray-400"><i class="fa-solid fa-pen-ruler"></i></div>
+                    <button @click="selectSetup('manual')" type="button" class="setup-card" :class="{ 'selected': form.setup_type === 'manual' }">
+                        <div class="setup-icon !bg-gray-100 !text-gray-400" :class="{ '!bg-[var(--rose)] !text-white': form.setup_type === 'manual' }"><i class="fa-solid fa-pen-ruler"></i></div>
                         <div class="setup-text">
                             <h3 class="font-bold text-base text-[var(--text)]">Mulai dari Kertas Kosong</h3>
                             <p class="text-xs text-[var(--text-muted)] mt-1.5 leading-relaxed">Pilih ini jika kamu sudah memiliki rencana sendiri dan ingin mengisi semuanya dari nol.</p>
                         </div>
                     </button>
                     
-                    <button @click="prevStep" type="button" class="btn-back mt-2">
+                    <button @click="handleStep2Next" type="button" class="btn-primary w-full py-3 mt-2 text-sm font-semibold" :class="{'opacity-50': !form.setup_type || form.processing}" :disabled="!form.setup_type || form.processing">
+                        Lanjutkan <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
+                    </button>
+
+                    <button @click="prevStep" type="button" class="btn-back mt-1">
                         <i class="fa-solid fa-arrow-left mr-2"></i> Kembali
                     </button>
                 </div>
@@ -160,8 +169,9 @@ const submitAuto = () => {
 
 /* Setup Cards */
 .setup-card { display: flex; align-items: flex-start; gap: 16px; padding: 20px; border: 2px solid var(--border); border-radius: 12px; background: white; text-align: left; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
-.setup-card:hover { border-color: var(--rose); background: var(--rose-pale); transform: translateY(-3px); box-shadow: 0 10px 25px -5px rgba(196, 149, 106, 0.15); }
-.setup-icon { width: 50px; height: 50px; border-radius: 12px; background: var(--rose); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(196, 149, 106, 0.2); }
+.setup-card:hover { border-color: rgba(196, 149, 106, 0.5); transform: translateY(-2px); }
+.setup-card.selected { border-color: var(--rose); background: var(--rose-pale); box-shadow: 0 10px 25px -5px rgba(196, 149, 106, 0.15); }
+.setup-icon { width: 50px; height: 50px; border-radius: 12px; background: var(--rose); color: white; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; box-shadow: 0 4px 10px rgba(196, 149, 106, 0.2); transition: all 0.3s; }
 
 /* Info Alert */
 .info-alert { display: flex; align-items: flex-start; gap: 12px; background: rgba(196, 149, 106, 0.1); border-left: 4px solid var(--rose); padding: 12px 16px; border-radius: 0 8px 8px 0; color: var(--text); }
