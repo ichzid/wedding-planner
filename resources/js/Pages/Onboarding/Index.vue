@@ -38,12 +38,35 @@ const selectSetup = (type) => {
 const handleStep2Next = () => {
     if (!form.setup_type) return;
 
-    if (form.setup_type === 'manual') {
-        form.post(route('onboarding.store'));
-    } else {
+    transitionName.value = 'slide-left';
+    step.value = 3;
+};
+
+const goToStep = (targetStep) => {
+    if (form.processing) return;
+    
+    // Only allow going back or to next step if current is valid
+    if (targetStep < step.value) {
+        transitionName.value = 'slide-right';
+        step.value = targetStep;
+    } else if (targetStep === 2 && step.value === 1 && form.nama_cpw && form.nama_cpp && form.tanggal_nikah) {
         transitionName.value = 'slide-left';
-        step.value = 3;
+        step.value = targetStep;
+    } else if (targetStep === 3 && step.value === 2 && form.setup_type) {
+        transitionName.value = 'slide-left';
+        step.value = targetStep;
     }
+};
+
+const formatBudgetInput = (e) => {
+    // Remove all non-numeric characters
+    let val = e.target.value.replace(/\D/g, '');
+    
+    // Update the v-model directly with unformatted number for submission
+    form.budget = val;
+    
+    // Format display value with dots
+    e.target.value = val ? Number(val).toLocaleString('id-ID') : '';
 };
 
 const submitAuto = () => {
@@ -57,20 +80,20 @@ const submitAuto = () => {
 
         <div class="text-center mb-6 relative">
             <div class="step-indicator mb-4">
-                <span class="step-dot" :class="{'active': step >= 1}"></span>
+                <span class="step-dot" :class="{'active': step >= 1, 'cursor-pointer': true}" @click="goToStep(1)"></span>
                 <span class="step-line" :class="{'active': step >= 2}"></span>
-                <span class="step-dot" :class="{'active': step >= 2}"></span>
+                <span class="step-dot" :class="{'active': step >= 2, 'cursor-pointer': step >= 1 && form.nama_cpw && form.nama_cpp && form.tanggal_nikah}" @click="goToStep(2)"></span>
                 <span class="step-line" :class="{'active': step === 3}"></span>
-                <span class="step-dot" :class="{'active': step === 3}"></span>
+                <span class="step-dot" :class="{'active': step === 3, 'cursor-pointer': step >= 2 && form.setup_type}" @click="goToStep(3)"></span>
             </div>
             
             <transition name="fade" mode="out-in">
                 <div :key="step">
                     <h2 class="text-xl font-bold" style="color: var(--text); font-family: var(--font-display);">
-                        {{ step === 1 ? 'Ceritakan Tentang Pernikahanmu' : (step === 2 ? 'Pilih Cara Memulai' : 'Personalisasi Otomatis') }}
+                        {{ step === 1 ? 'Ceritakan Tentang Pernikahanmu' : (step === 2 ? 'Pilih Cara Memulai' : (form.setup_type === 'auto' ? 'Personalisasi Otomatis' : 'Konfirmasi Manual')) }}
                     </h2>
                     <p class="text-sm mt-1" style="color: var(--text-muted);">
-                        {{ step === 1 ? 'Langkah pertama untuk merencanakan hari bahagiamu.' : (step === 2 ? 'Kami bisa membantumu membuat kerangka rencana.' : 'Masukkan estimasi budget untuk dibuatkan rinciannya.') }}
+                        {{ step === 1 ? 'Langkah pertama untuk merencanakan hari bahagiamu.' : (step === 2 ? 'Kami bisa membantumu membuat kerangka rencana.' : (form.setup_type === 'auto' ? 'Masukkan estimasi budget untuk dibuatkan rinciannya.' : 'Kamu siap merencanakan semuanya dari nol.')) }}
                     </p>
                 </div>
             </transition>
@@ -101,6 +124,10 @@ const submitAuto = () => {
                     <button @click="nextStep" type="button" class="btn-primary w-full py-3 mt-4 text-sm font-semibold" :class="{'opacity-50': !form.nama_cpw || !form.nama_cpp || !form.tanggal_nikah}" :disabled="!form.nama_cpw || !form.nama_cpp || !form.tanggal_nikah">
                         Lanjutkan <i class="fa-solid fa-arrow-right ml-2 text-xs"></i>
                     </button>
+                    
+                    <a :href="route('logout')" @click.prevent="form.post(route('logout'))" class="btn-back mt-1 text-red-500 hover:text-red-700 hover:bg-red-50">
+                        <i class="fa-solid fa-arrow-right-from-bracket mr-2"></i> Batalkan & Keluar
+                    </a>
                 </div>
 
                 <!-- STEP 2: Choose Setup Type -->
@@ -133,24 +160,49 @@ const submitAuto = () => {
 
                 <!-- STEP 3: Auto Setup Inputs -->
                 <div v-else-if="step === 3" class="absolute w-full top-0 flex flex-col gap-4">
-                    <div class="info-alert mb-2">
-                        <i class="fa-solid fa-circle-info mt-0.5"></i>
-                        <p class="text-xs leading-relaxed">
-                            Masukkan total anggaran pernikahan. Sistem akan membaginya ke 7 kategori standar (Katering, Venue, dll) secara proporsional.
+                    <div v-if="form.setup_type === 'auto'">
+                        <InputLabel for="budget" value="Total Estimasi Budget" />
+                        <div class="relative mt-1">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 font-medium">Rp</span>
+                            </div>
+                            <TextInput 
+                                id="budget" 
+                                type="text" 
+                                class="pl-10 !text-lg !font-bold" 
+                                v-model="form.budget" 
+                                @input="formatBudgetInput"
+                                required 
+                                placeholder="0" 
+                            />
+                        </div>
+                        <InputError class="mt-1" :message="form.errors.budget" />
+                        
+                        <div class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-4 mt-4 mb-2 text-left">
+                            <h4 class="text-xs font-bold text-[var(--text)] mb-2 uppercase tracking-wider">Yang akan dibuat:</h4>
+                            <ul class="text-sm text-[var(--text-muted)] space-y-2">
+                                <li><i class="fa-solid fa-check text-[var(--rose)] mr-2"></i> Timeline persiapan dari hari ini s/d hari-H</li>
+                                <li><i class="fa-solid fa-check text-[var(--rose)] mr-2"></i> Pembagian persentase budget ideal (Katering, Dekorasi, dll)</li>
+                                <li><i class="fa-solid fa-check text-[var(--rose)] mr-2"></i> Template seserahan & dokumen KUA</li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    <div v-else class="bg-[var(--surface)] border border-[var(--border)] rounded-lg p-6 mt-2 mb-2 text-center">
+                        <div class="w-16 h-16 rounded-full bg-[var(--rose-pale)] text-[var(--rose)] flex items-center justify-center mx-auto mb-4 text-2xl">
+                            <i class="fa-solid fa-rocket"></i>
+                        </div>
+                        <h4 class="font-bold text-[var(--text)] mb-2">Persiapan Kustom</h4>
+                        <p class="text-sm text-[var(--text-muted)] leading-relaxed">
+                            Aplikasi siap digunakan. Anda bisa menambahkan timeline, menyusun rincian budget, dan mengelola tamu undangan secara bertahap nanti.
                         </p>
                     </div>
 
-                    <div>
-                        <InputLabel for="budget" value="Total Estimasi Budget (Rp)" />
-                        <TextInput id="budget" type="number" class="mt-1 text-lg font-semibold" v-model="form.budget" required placeholder="Contoh: 100000000" />
-                        <InputError class="mt-1" :message="form.errors.budget" />
-                    </div>
-
-                    <button @click="submitAuto" type="button" class="btn-primary w-full py-3 mt-4 text-sm font-semibold" :class="{ 'opacity-50 cursor-wait': form.processing || !form.budget }" :disabled="form.processing || !form.budget">
-                        Selesai & Masuk Dashboard <i class="fa-solid fa-check ml-2"></i>
+                    <button @click="submitAuto" type="button" class="btn-primary w-full py-3 mt-2 text-sm font-semibold" :class="{'opacity-50 cursor-wait': form.processing || (form.setup_type === 'auto' && !form.budget)}" :disabled="form.processing || (form.setup_type === 'auto' && !form.budget)">
+                        Selesai & Masuk Dashboard <i class="fa-solid fa-check ml-2 text-xs"></i>
                     </button>
                     
-                    <button @click="prevStep" type="button" class="btn-back mt-2" :disabled="form.processing">
+                    <button @click="prevStep" type="button" class="btn-back mt-1" :disabled="form.processing">
                         <i class="fa-solid fa-arrow-left mr-2"></i> Kembali
                     </button>
                 </div>
