@@ -71,7 +71,7 @@ const submitAuto = () => {
             </transition>
         </div>
 
-        <div class="relative overflow-visible" :style="{ minHeight: step === 1 ? '310px' : (step === 2 ? '240px' : '280px'), transition: 'min-height 0.3s ease' }">
+        <div class="relative overflow-visible" :style="{ height: step === 1 ? '340px' : (step === 2 ? '250px' : '310px'), transition: 'height 0.4s ease' }">
             <transition :name="transitionName">
                 <!-- STEP 1: Basic Info -->
                 <div v-if="step === 1" class="absolute w-full top-0 flex flex-col gap-4">
@@ -174,10 +174,14 @@ const submitAuto = () => {
 /* Transitions */
 .slide-left-enter-active, .slide-left-leave-active,
 .slide-right-enter-active, .slide-right-leave-active { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
-.slide-left-enter-from { opacity: 0; transform: translateX(30px); }
-.slide-left-leave-to { opacity: 0; transform: translateX(-30px); }
-.slide-right-enter-from { opacity: 0; transform: translateX(-30px); }
-.slide-right-leave-to { opacity: 0; transform: translateX(30px); }
+
+.slide-left-enter-from { opacity: 0; transform: translateX(40px); }
+.slide-left-leave-to { opacity: 0; transform: translateX(-40px); }
+.slide-right-enter-from { opacity: 0; transform: translateX(-40px); }
+.slide-right-leave-to { opacity: 0; transform: translateX(40px); }
+
+/* Make sure absolute positioning doesn't ruin the flow */
+.absolute { position: absolute; left: 0; right: 0; }
 
 .fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
 .fade-enter-from, .fade-leave-to { opacity: 0; }
