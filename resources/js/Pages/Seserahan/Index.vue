@@ -159,6 +159,7 @@
               <div>
                 <label class="form-label">Kategori *</label>
                 <select v-model="form.kategori" required class="form-input">
+                  <option value="" disabled selected hidden>Pilih Kategori</option>
                   <option v-for="kat in kategoriOptions" :key="kat" :value="kat">{{ kat }}</option>
                 </select>
                 <p v-if="errors.kategori" class="form-error">{{ errors.kategori }}</p>
@@ -166,8 +167,10 @@
               <div>
                 <label class="form-label">Untuk *</label>
                 <select v-model="form.untuk" required class="form-input">
+                  <option value="" disabled selected hidden>Pilih Tujuan</option>
                   <option value="cpp">Mempelai Pria</option>
                   <option value="cpw">Mempelai Wanita</option>
+                  <option value="kedua">Kedua Mempelai</option>
                 </select>
                 <p v-if="errors.untuk" class="form-error">{{ errors.untuk }}</p>
               </div>
@@ -244,9 +247,9 @@ const saving    = ref(false);
 const errors    = ref({});
 
 const defaultForm = () => ({
-  kategori:       'Umum',
+  kategori:       '',
   nama_item:      '',
-  untuk:          'cpp',
+  untuk:          '',
   qty:            1,
   satuan:         'buah',
   harga:          0,
@@ -364,12 +367,14 @@ function resetFilters() {
 function untukLabel(untuk) {
   if (untuk === 'cpw') return 'Mempelai Wanita';
   if (untuk === 'cpp') return 'Mempelai Pria';
+  if (untuk === 'kedua') return 'Kedua Mempelai';
   return '-';
 }
 
 function untukChipClass(untuk) {
   if (untuk === 'cpw') return 'chip--cpw';
   if (untuk === 'cpp') return 'chip--cpp';
+  if (untuk === 'kedua') return 'chip--ok'; // Optional: Use a specific class or green color
   return 'chip--neutral';
 }
 
