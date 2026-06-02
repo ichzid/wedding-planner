@@ -39,7 +39,7 @@ class SeserahanController extends Controller
         $data = $request->validate([
             'kategori'  => 'required|string',
             'nama_item' => 'required|string|max:255',
-            'untuk'     => 'required|in:cpp,cpw',
+            'untuk'     => 'required|in:cpp,cpw,kedua',
             'qty'       => 'required|integer|min:1',
             'satuan'    => 'nullable|string|max:50',
             'harga'     => 'required|integer|min:0',
@@ -62,7 +62,7 @@ class SeserahanController extends Controller
         $data = $request->validate([
             'kategori'  => 'required|string',
             'nama_item' => 'required|string|max:255',
-            'untuk'     => 'required|in:cpp,cpw',
+            'untuk'     => 'required|in:cpp,cpw,kedua',
             'qty'       => 'required|integer|min:1',
             'satuan'    => 'nullable|string|max:50',
             'harga'     => 'required|integer|min:0',
