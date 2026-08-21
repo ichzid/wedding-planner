@@ -1,483 +1,71 @@
 <template>
   <AppLayout>
-    <Head title="Dokumen KUA" />
+    <div class="kua-page">
+      <header class="hero-card">
+        <div><span class="eyebrow">Persiapan administrasi pernikahan</span><h1>Dokumen KUA</h1><p>Lengkapi persyaratan kedua calon pengantin dan pantau biaya pengurusannya.</p></div>
+        <button class="primary-action" @click="openCreate"><Plus aria-hidden="true" />Tambah Dokumen</button>
+      </header>
 
-    <!-- Header -->
-    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
-      <div>
-        <h1 class="page-title">Dokumen KUA</h1>
-        <p class="page-sub">{{ doneCount }}/{{ totalDok }} dokumen selesai · Total biaya {{ formatRp(totalBiaya) }}</p>
-      </div>
-      <button class="btn btn--dark" @click="openCreate">
-        <i class="fa-solid fa-plus fa-xs"></i> Tambah
-      </button>
-    </div>
+      <section class="summary-grid" aria-label="Ringkasan dokumen KUA">
+        <article class="summary-card"><span class="summary-icon"><Files /></span><div><p class="summary-label">Total Dokumen</p><p class="summary-value">{{ totalDok }}</p><p class="summary-sub">{{ doneCount }} lengkap kedua pihak</p></div></article>
+        <article class="summary-card"><span class="summary-icon"><UserRoundCheck /></span><div><p class="summary-label">Calon Pengantin Wanita</p><p class="summary-value">{{ doneCpw }}/{{ totalDok }}</p><div class="progress-track"><span :style="{width: cpwProgress+'%'}"></span></div></div></article>
+        <article class="summary-card"><span class="summary-icon"><UserRoundCheck /></span><div><p class="summary-label">Calon Pengantin Pria</p><p class="summary-value">{{ doneCpp }}/{{ totalDok }}</p><div class="progress-track"><span :style="{width: cppProgress+'%'}"></span></div></div></article>
+        <article class="summary-card"><span class="summary-icon summary-icon--money"><WalletCards /></span><div><p class="summary-label">Total Biaya</p><p class="summary-value">{{ formatRp(totalBiaya) }}</p><p class="summary-sub">Estimasi pengurusan dokumen</p></div></article>
+      </section>
 
-    <!-- Summary Cards -->
-    <div class="summary-grid">
-      <div class="card summary-card">
-        <p class="summary-card__label">Total Dokumen</p>
-        <p class="summary-card__value">{{ totalDok }}</p>
-      </div>
-      <div class="card summary-card">
-        <p class="summary-card__label">Mempelai Wanita Siap</p>
-        <p class="summary-card__value">{{ doneCpw }}<span style="font-size:16px;font-weight:500;color:var(--ink-300)">/{{ totalDok }}</span></p>
-        <div class="prog-track mt-2"><div class="prog-fill" :style="{ width: (totalDok ? Math.round(doneCpw/totalDok*100) : 0) + '%' }"></div></div>
-      </div>
-      <div class="card summary-card">
-        <p class="summary-card__label">Mempelai Pria Siap</p>
-        <p class="summary-card__value">{{ doneCpp }}<span style="font-size:16px;font-weight:500;color:var(--ink-300)">/{{ totalDok }}</span></p>
-        <div class="prog-track mt-2"><div class="prog-fill" :style="{ width: (totalDok ? Math.round(doneCpp/totalDok*100) : 0) + '%' }"></div></div>
-      </div>
-      <div class="card summary-card">
-        <p class="summary-card__label">Total Biaya</p>
-        <p class="summary-card__value" style="font-size:18px">{{ formatRp(totalBiaya) }}</p>
-      </div>
-    </div>
+      <section class="data-panel">
+        <section class="toolbar" aria-label="Pencarian dan filter dokumen">
+          <div class="toolbar-top"><div class="search-wrap"><Search aria-hidden="true" /><input v-model="searchQuery" class="toolbar-control" placeholder="Cari nama dokumen atau catatan..."></div><button class="filter-toggle" :class="{active:mobileFiltersOpen||filterStatus}" :aria-expanded="mobileFiltersOpen" aria-controls="kua-filters" aria-label="Tampilkan filter dokumen" @click="mobileFiltersOpen=!mobileFiltersOpen"><ListFilter aria-hidden="true" /><span v-if="filterStatus" /></button></div>
+          <div id="kua-filters" class="toolbar-filters" :class="{open:mobileFiltersOpen}"><label class="select-wrap"><select v-model="filterStatus" class="toolbar-control" aria-label="Filter status kelengkapan"><option value="">Semua Status</option><option value="done">Lengkap Kedua Pihak</option><option value="pending">Belum Lengkap</option></select><ChevronDown aria-hidden="true" /></label><button v-if="hasFilters" class="secondary-action" @click="resetFilters"><X aria-hidden="true" />Reset</button><button class="secondary-action export-action" @click="exportToExcel"><FileSpreadsheet aria-hidden="true" />Ekspor Excel</button></div>
+        </section>
 
-    <!-- Toolbar -->
-    <div class="toolbar">
-      <div class="toolbar__search">
-        <i class="fa-solid fa-magnifying-glass search-icon"></i>
-        <input v-model="searchQuery" type="text" placeholder="Cari nama dokumen..." class="form-input search-input">
-      </div>
-      <select v-model="filterStatus" class="form-input toolbar__select">
-        <option value="">Semua Status</option>
-        <option value="done">Selesai Kedua Pihak</option>
-        <option value="pending">Belum Selesai</option>
-      </select>
-      <button v-if="filterStatus || searchQuery" class="btn btn--outline btn--sm" @click="resetFilters">
-        <i class="fa-solid fa-xmark"></i> Reset
-      </button>
-      <button class="btn btn--outline" @click="exportToExcel">
-        <i class="fa-solid fa-file-excel" style="color: #2e7d32;"></i>
-        Export Excel
-      </button>
-    </div>
-
-    <!-- Table -->
-    <div class="card" style="overflow:hidden">
-      <div style="overflow-x:auto">
-        <table class="tbl">
-          <thead>
-            <tr>
-              <th style="width:36px">#</th>
-              <th>Nama Dokumen</th>
-              <th class="text-right">Biaya</th>
-              <th class="text-center">Mempelai Wanita</th>
-              <th class="text-center">Mempelai Pria</th>
-              <th>Catatan</th>
-              <th class="text-center" style="width:80px">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(doc, index) in filteredDocuments"
-              :key="doc.id"
-              class="draggable-row"
-              :class="{ 'row--done': doc.cpw_status && doc.cpp_status, 'is-dragging': draggedId === doc.id, 'is-drop-target': dragOverId === doc.id, 'is-drop-before': dropPlacement(doc.id) === 'before', 'is-drop-after': dropPlacement(doc.id) === 'after', 'is-drag-disabled': !canDragRows }"
-              :draggable="canDragRows"
-              @dragstart="startDrag(doc, index, $event)"
-              @dragover.prevent="setDragOver(doc, index)"
-              @drop="dropRow(index)"
-              @dragend="endDrag"
-              @touchstart="handleTouchStart"
-              @touchmove="handleTouchMove"
-              @touchend="handleTouchEnd"
-            >
-              <td class="mono-text drag-cell"><i class="fa-solid fa-grip-vertical"></i> {{ doc.no }}</td>
-              <td>
-                <p class="item-name">{{ doc.nama_dokumen }}</p>
-              </td>
-              <td class="text-right">{{ doc.biaya > 0 ? formatRp(doc.biaya) : '–' }}</td>
-              <td class="text-center">
-                <button
-                  class="check-btn"
-                  @click="toggleCpw(doc)"
-                  :title="doc.cpw_status ? 'Tandai belum' : 'Tandai selesai'"
-                >
-                  <i :class="doc.cpw_status ? 'fa-solid fa-circle-check check-done' : 'fa-regular fa-circle check-pending'"></i>
-                </button>
-              </td>
-              <td class="text-center">
-                <button
-                  class="check-btn"
-                  @click="toggleCpp(doc)"
-                  :title="doc.cpp_status ? 'Tandai belum' : 'Tandai selesai'"
-                >
-                  <i :class="doc.cpp_status ? 'fa-solid fa-circle-check check-done' : 'fa-regular fa-circle check-pending'"></i>
-                </button>
-              </td>
-              <td class="text-muted">{{ doc.catatan || '–' }}</td>
-              <td>
-                <div style="display:flex;align-items:center;justify-content:center;gap:2px">
-                  <button class="btn btn--ghost btn--icon" title="Copy" @click="openCopy(doc)" :id="'copy-kua-'+doc.id">
-                    <i class="fa-solid fa-copy action-icon action-icon--copy"></i>
-                  </button>
-                  <button class="btn btn--ghost btn--icon" title="Edit" @click="openEdit(doc)" :id="'edit-kua-'+doc.id">
-                    <i class="fa-solid fa-pen-to-square action-icon action-icon--edit"></i>
-                  </button>
-                  <button class="btn btn--danger-ghost btn--icon" title="Hapus" @click="confirmDelete(doc)" :id="'del-kua-'+doc.id">
-                    <i class="fa-solid fa-trash action-icon action-icon--delete"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr v-if="!filteredDocuments.length">
-              <td colspan="7">
-                <div class="empty-state">
-                  <i class="fa-solid fa-file-contract empty-state__icon"></i>
-                  <p class="empty-state__text">Belum ada dokumen KUA</p>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Modal -->
-    <Teleport to="body">
-      <div v-if="showModal" class="modal-backdrop">
-        <div class="modal-box">
-          <div class="modal-header">
-            <h3 class="modal-title">{{ editItem ? 'Edit Dokumen' : (copyItem ? 'Copy Dokumen' : 'Tambah Dokumen') }}</h3>
-            <button class="btn btn--icon btn--ghost" @click="closeModal"><i class="fa-solid fa-xmark"></i></button>
-          </div>
-          <form @submit.prevent="save" class="modal-body">
-            <div>
-              <label class="form-label">Nama Dokumen *</label>
-              <input v-model="form.nama_dokumen" type="text" required class="form-input" placeholder="KTP, Akta Lahir, Surat N1...">
-              <p v-if="errors.nama_dokumen" class="form-error">{{ errors.nama_dokumen }}</p>
-            </div>
-            <div style="margin-top:12px">
-              <label class="form-label">Biaya (Rp)</label>
-              <input v-model="form.biaya" type="number" min="0" class="form-input">
-            </div>
-            <div style="margin-top:12px">
-              <label class="form-label">Catatan</label>
-              <textarea v-model="form.catatan" rows="2" class="form-input"></textarea>
-            </div>
-            <div class="modal-footer" style="margin-top:16px;padding:0">
-              <button type="button" class="btn btn--outline" style="flex:1;justify-content:center" @click="closeModal">Batal</button>
-              <button type="submit" class="btn btn--dark" style="flex:1;justify-content:center" :disabled="saving">
-                <i v-if="saving" class="fa-solid fa-spinner fa-spin fa-xs"></i>
-                {{ saving ? 'Menyimpan...' : 'Simpan' }}
-              </button>
-            </div>
-          </form>
+        <div class="desktop-table">
+          <table class="tbl"><thead><tr><th>#</th><th>Nama Dokumen</th><th class="right">Biaya</th><th class="center">Calon Pengantin Wanita</th><th class="center">Calon Pengantin Pria</th><th>Catatan</th><th class="center">Aksi</th></tr></thead><tbody>
+            <tr v-for="(doc,index) in filteredDocuments" :key="doc.id" class="draggable-row" :class="rowClasses(doc)" :draggable="canDragRows" @dragstart="startDrag(doc,index,$event)" @dragover.prevent="setDragOver(doc,index)" @drop="dropRow(index)" @dragend="endDrag">
+              <td class="drag-cell" @touchstart.stop="handleTouchStart($event,doc,index)" @touchmove.stop="handleTouchMove" @touchend.stop="handleTouchEnd" @touchcancel.stop="endDrag"><GripVertical aria-hidden="true" /> {{ doc.no }}</td><td><strong>{{ doc.nama_dokumen }}</strong></td><td class="right strong">{{ doc.biaya>0?formatRp(doc.biaya):'–' }}</td>
+              <td class="center"><button class="status-button" :class="{done:doc.cpw_status}" :aria-label="`${doc.cpw_status?'Batalkan':'Tandai'} dokumen ${doc.nama_dokumen} untuk calon pengantin wanita`" :data-tooltip="doc.cpw_status?'Tandai belum lengkap':'Tandai lengkap'" @click="toggleCpw(doc)"><component :is="doc.cpw_status?CircleCheckBig:Circle" aria-hidden="true" /><span>{{ doc.cpw_status?'Lengkap':'Belum' }}</span></button></td>
+              <td class="center"><button class="status-button" :class="{done:doc.cpp_status}" :aria-label="`${doc.cpp_status?'Batalkan':'Tandai'} dokumen ${doc.nama_dokumen} untuk calon pengantin pria`" :data-tooltip="doc.cpp_status?'Tandai belum lengkap':'Tandai lengkap'" :aria-pressed="doc.cpp_status" @click="toggleCpp(doc)"><component :is="doc.cpp_status?CircleCheckBig:Circle" aria-hidden="true" /><span>{{ doc.cpp_status?'Lengkap':'Belum' }}</span></button></td>
+              <td class="note">{{ doc.catatan||'–' }}</td><td><div class="actions"><button class="icon-action" data-tooltip="Salin" :aria-label="`Salin dokumen ${doc.nama_dokumen}`" @click="openCopy(doc)"><Copy /></button><button class="icon-action" data-tooltip="Edit" :aria-label="`Edit dokumen ${doc.nama_dokumen}`" @click="openEdit(doc)"><Pencil /></button><button class="icon-action danger" data-tooltip="Hapus" :aria-label="`Hapus dokumen ${doc.nama_dokumen}`" @click="confirmDelete(doc)"><Trash2 /></button></div></td>
+            </tr></tbody><tfoot v-if="filteredDocuments.length"><tr><td colspan="2">{{ filteredDocuments.length }} dokumen ditampilkan</td><td class="right strong">{{ formatRp(filteredTotalBiaya) }}</td><td colspan="4"></td></tr></tfoot></table><EmptyState v-if="!filteredDocuments.length" :filtered="hasFilters" @create="openCreate" @reset="resetFilters" />
         </div>
-      </div>
-    </Teleport>
+
+        <section class="mobile-records" aria-label="Daftar dokumen KUA"><article v-for="(doc,index) in filteredDocuments" :key="doc.id" class="record-card" :class="{complete:doc.cpw_status&&doc.cpp_status}"><div class="record-head"><div><span class="category">Dokumen #{{ doc.no }}</span><h2>{{ doc.nama_dokumen }}</h2></div><strong>{{ doc.biaya>0?formatRp(doc.biaya):'Tanpa biaya' }}</strong></div><div class="mobile-status"><button type="button" class="status-button" :class="{done:doc.cpw_status}" :aria-label="`${doc.cpw_status?'Batalkan':'Tandai'} dokumen ${doc.nama_dokumen} untuk calon pengantin wanita`" :aria-pressed="doc.cpw_status" @click="toggleCpw(doc)"><component :is="doc.cpw_status?CircleCheckBig:Circle" aria-hidden="true" /><span>CPW · {{ doc.cpw_status?'Lengkap':'Belum' }}</span></button><button type="button" class="status-button" :class="{done:doc.cpp_status}" :aria-label="`${doc.cpp_status?'Batalkan':'Tandai'} dokumen ${doc.nama_dokumen} untuk calon pengantin pria`" :aria-pressed="doc.cpp_status" @click="toggleCpp(doc)"><component :is="doc.cpp_status?CircleCheckBig:Circle" aria-hidden="true" /><span>CPP · {{ doc.cpp_status?'Lengkap':'Belum' }}</span></button></div><p v-if="doc.catatan" class="record-note">{{ doc.catatan }}</p><div class="record-footer"><button class="drag-handle" :disabled="!canDragRows" aria-label="Geser urutan dokumen" @touchstart.stop="handleTouchStart($event,doc,index)" @touchmove.stop="handleTouchMove" @touchend.stop="handleTouchEnd" @touchcancel.stop="endDrag"><GripVertical />Urutan {{ doc.no }}</button><div class="actions"><button class="icon-action" aria-label="Salin dokumen" @click="openCopy(doc)"><Copy /></button><button class="icon-action" aria-label="Edit dokumen" @click="openEdit(doc)"><Pencil /></button><button class="icon-action danger" aria-label="Hapus dokumen" @click="confirmDelete(doc)"><Trash2 /></button></div></div></article><EmptyState v-if="!filteredDocuments.length" :filtered="hasFilters" @create="openCreate" @reset="resetFilters" /></section>
+      </section>
+    </div>
+
+    <Teleport to="body"><div v-if="showModal" class="drawer-backdrop" @click.self="closeModal"><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="kua-drawer-title"><div class="drawer-handle" aria-hidden="true"></div><header class="drawer-header"><div><span class="eyebrow">Dokumen KUA</span><h3 id="kua-drawer-title" class="drawer-title">{{ editItem?'Edit Dokumen':copyItem?'Salin Dokumen':'Tambah Dokumen' }}</h3></div><button class="icon-action" aria-label="Tutup" @click="closeModal"><X /></button></header><form class="drawer-body" @submit.prevent="save"><div class="field"><label for="document-name">Nama Dokumen <span>*</span></label><div class="field-control"><FileText /><input id="document-name" v-model="form.nama_dokumen" required placeholder="Contoh: KTP, akta lahir, surat N1"></div></div><div class="field"><label for="document-cost">Biaya (Rp)</label><div class="field-control"><BadgeDollarSign /><input id="document-cost" v-model="form.biaya" type="number" min="0" placeholder="0"></div></div><div class="field"><label for="document-note">Catatan</label><div class="field-control textarea"><NotepadText /><textarea id="document-note" v-model="form.catatan" rows="4" placeholder="Tambahkan informasi penting..."></textarea></div></div><footer class="drawer-footer"><button type="button" class="secondary-action" @click="closeModal">Batal</button><button type="submit" class="primary-action" :disabled="saving"><LoaderCircle v-if="saving" class="spinner" />{{ saving?'Menyimpan...':'Simpan Dokumen' }}</button></footer></form></aside></div></Teleport>
   </AppLayout>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
-import { Head, router } from '@inertiajs/vue3';
+import { computed, defineComponent, h, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { router } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { showToast, confirmDeleteDialog } from '@/utils.js';
+import { BadgeDollarSign, ChevronDown, Circle, CircleCheckBig, Copy, Files, FileSpreadsheet, FileText, GripVertical, ListFilter, LoaderCircle, NotepadText, Pencil, Plus, Search, Trash2, UserRoundCheck, WalletCards, X } from '@lucide/vue';
+import { confirmDeleteDialog, showToast } from '@/utils.js';
 import * as XLSX from 'xlsx';
 
-const props = defineProps({
-  documents: Array,
-  totalBiaya: Number,
-  totalDok: Number,
-  doneCpw: Number,
-  doneCpp: Number,
-  allDone: Boolean,
-});
-
-const localDocuments = ref([...props.documents]);
-const searchQuery  = ref('');
-const filterStatus = ref('');
-const draggedIndex = ref(null);
-const draggedId = ref(null);
-const dragOverIndex = ref(null);
-const dragOverId = ref(null);
-const showModal = ref(false);
-const editItem  = ref(null);
-const copyItem  = ref(null);
-const saving    = ref(false);
-const errors    = ref({});
-
-const defaultForm = () => ({ nama_dokumen: '', biaya: '', catatan: '' });
-const form = ref(defaultForm());
-
-const doneCount = computed(() => props.documents.filter(d => d.cpw_status && d.cpp_status).length);
-
-watch(() => props.documents, (documents) => {
-  localDocuments.value = [...documents];
-});
-
-const filteredDocuments = computed(() => {
-  let list = [...localDocuments.value];
-  if (searchQuery.value) {
-    const q = searchQuery.value.toLowerCase();
-    list = list.filter(d => d.nama_dokumen?.toLowerCase().includes(q));
-  }
-  if (filterStatus.value === 'done')    list = list.filter(d => d.cpw_status && d.cpp_status);
-  if (filterStatus.value === 'pending') list = list.filter(d => !d.cpw_status || !d.cpp_status);
-  return list;
-});
-
-const canDragRows = computed(() => !searchQuery.value && !filterStatus.value);
-
-function formatRp(n) {
-  return 'Rp' + Number(n || 0).toLocaleString('id-ID');
-}
-
-function exportToExcel() {
-  if (filteredDocuments.value.length === 0) {
-    showToast('Tidak ada data untuk diexport');
-    return;
-  }
-
-  const dateNow = new Date();
-  const dateStr = dateNow.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-
-  const headers = ['No', 'Nama Dokumen', 'Status CPW', 'Status CPP', 'Biaya', 'Catatan'];
-  
-  const dataRows = filteredDocuments.value.map((doc, index) => [
-    doc.no || index + 1,
-    doc.nama_dokumen || '',
-    doc.cpw_status ? 'Selesai' : 'Belum',
-    doc.cpp_status ? 'Selesai' : 'Belum',
-    doc.biaya || 0,
-    doc.catatan || ''
-  ]);
-  
-  const totalBiayaFiltered = filteredDocuments.value.reduce((sum, d) => sum + (Number(d.biaya) || 0), 0);
-  dataRows.push([
-    '',
-    'TOTAL',
-    '',
-    '',
-    totalBiayaFiltered,
-    ''
-  ]);
-  
-  const finalData = [
-    ['DAFTAR DOKUMEN KUA'],
-    [`Dicetak pada: ${dateStr}`],
-    [], // empty row
-    headers,
-    ...dataRows
-  ];
-
-  const ws = XLSX.utils.aoa_to_sheet(finalData);
-  
-  // Merge cells for title
-  ws['!merges'] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 5 } }, // Merge A1:F1
-    { s: { r: 1, c: 0 }, e: { r: 1, c: 5 } }  // Merge A2:F2
-  ];
-
-  // Set column widths
-  ws['!cols'] = [
-    { wch: 5 },  // No
-    { wch: 40 }, // Nama Dokumen
-    { wch: 15 }, // Status CPW
-    { wch: 15 }, // Status CPP
-    { wch: 15 }, // Biaya
-    { wch: 40 }  // Catatan
-  ];
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Dokumen KUA");
-  
-  XLSX.writeFile(wb, `Dokumen_KUA_${dateNow.toISOString().split('T')[0]}.xlsx`);
-  showToast('Data berhasil diexport ke Excel');
-}
-
-function resetFilters() {
-  searchQuery.value  = '';
-  filterStatus.value = '';
-}
-
-function openCreate() {
-  editItem.value = null;
-  copyItem.value = null;
-  form.value = defaultForm();
-  errors.value = {};
-  showModal.value = true;
-}
-function openCopy(doc) {
-  editItem.value = null;
-  copyItem.value = doc;
-  form.value = { nama_dokumen: doc.nama_dokumen, biaya: doc.biaya || '', catatan: doc.catatan || '' };
-  errors.value = {};
-  showModal.value = true;
-}
-function openEdit(doc) {
-  editItem.value = doc;
-  copyItem.value = null;
-  form.value = { nama_dokumen: doc.nama_dokumen, biaya: doc.biaya || '', catatan: doc.catatan || '' };
-  errors.value = {}; 
-  showModal.value = true;
-}
-function closeModal() {
-  showModal.value = false;
-  editItem.value = null;
-  copyItem.value = null;
-}
-
-function save() {
-  saving.value = true; errors.value = {};
-  const payload = { ...form.value, biaya: Number(form.value.biaya) || 0 };
-  const url    = editItem.value ? route('dokumen-kua.update', editItem.value.id) : route('dokumen-kua.store');
-  const method = editItem.value ? 'patch' : 'post';
-  router[method](url, payload, {
-    preserveScroll: true,
-    onSuccess: () => { showToast(editItem.value ? 'Dokumen diupdate.' : (copyItem.value ? 'Copy dokumen ditambahkan.' : 'Dokumen ditambahkan.')); closeModal(); saving.value = false; },
-    onError: (errs) => { errors.value = errs; saving.value = false; },
-  });
-}
-
-function toggleCpw(doc) {
-  router.patch(route('kua.toggle-cpw', doc.id), {}, { preserveScroll: true, onSuccess: () => showToast('Status Mempelai Wanita diupdate.') });
-}
-function toggleCpp(doc) {
-  router.patch(route('kua.toggle-cpp', doc.id), {}, { preserveScroll: true, onSuccess: () => showToast('Status Mempelai Pria diupdate.') });
-}
-function startDrag(item, index, event) {
-  if (!canDragRows.value) return;
-  draggedIndex.value = index;
-  draggedId.value = item.id;
-  if(event && event.dataTransfer) {
-      event.dataTransfer.effectAllowed = 'move';
-  }
-}
-
-function handleTouchStart(event) {
-  if (!canDragRows.value) return;
-  const targetEl = event.target;
-  if (!targetEl?.closest('.drag-cell')) return;
-
-  const targetRow = targetEl.closest('.draggable-row');
-  if (targetRow) {
-      const b_index = Array.from(targetRow.parentNode.children).indexOf(targetRow);
-      startDrag(filteredDocuments.value[b_index], b_index, null);
-  }
-}
-
-function handleTouchMove(event) {
-    if(!canDragRows.value || draggedId.value === null) return;
-    event.preventDefault(); // Prevent scrolling while dragging
-    const touch = event.touches[0];
-    const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
-    const targetRow = targetEl?.closest('.draggable-row');
-    if (targetRow) {
-        const index = Array.from(targetRow.parentNode.children).indexOf(targetRow);
-        const item = filteredDocuments.value[index];
-        setDragOver(item, index);
-    }
-}
-
-function setDragOver(item, index) {
-  if (!canDragRows.value || draggedId.value === item.id) return;
-  dragOverId.value = item.id;
-  dragOverIndex.value = index;
-}
-
-function dropPlacement(id) {
-  if (dragOverId.value !== id || draggedIndex.value === null || dragOverIndex.value === null) return null;
-  return dragOverIndex.value > draggedIndex.value ? 'after' : 'before';
-}
-
-function dropRow(targetIndex) {
-  if (!canDragRows.value || draggedIndex.value === null || draggedIndex.value === targetIndex) {
-    endDrag();
-    return;
-  }
-
-  const reordered = [...localDocuments.value];
-  const [moved] = reordered.splice(draggedIndex.value, 1);
-  reordered.splice(targetIndex, 0, moved);
-  localDocuments.value = reordered.map((item, index) => ({ ...item, no: index + 1 }));
-
-  router.patch(route('kua.reorder'), {
-    ids: localDocuments.value.map((item) => item.id),
-  }, {
-    preserveScroll: true,
-    onSuccess: () => showToast('Urutan dokumen berhasil disimpan.'),
-    onError: () => {
-      localDocuments.value = [...props.documents];
-      showToast('Urutan dokumen gagal disimpan.');
-    },
-  });
-
-  endDrag();
-}
-
-function handleTouchEnd(event) {
-    if (draggedId.value !== null && dragOverIndex.value !== null) {
-        dropRow(dragOverIndex.value);
-    } else {
-        endDrag();
-    }
-}
-
-function endDrag() {
-  draggedIndex.value = null;
-  draggedId.value = null;
-  dragOverIndex.value = null;
-  dragOverId.value = null;
-}
-
-function confirmDelete(doc) {
-  confirmDeleteDialog(() => {
-    router.delete(route('dokumen-kua.destroy', doc.id), { preserveScroll: true, onSuccess: () => showToast('Dokumen dihapus.') });
-  });
-}
+const props=defineProps({documents:Array,totalBiaya:Number,totalDok:Number,doneCpw:Number,doneCpp:Number,allDone:Boolean});
+const localDocuments=ref([...props.documents]),searchQuery=ref(''),filterStatus=ref(''),mobileFiltersOpen=ref(false),showModal=ref(false),editItem=ref(null),copyItem=ref(null),saving=ref(false),draggedIndex=ref(null),draggedId=ref(null),dragOverIndex=ref(null),dragOverId=ref(null);
+const defaultForm=()=>({nama_dokumen:'',biaya:'',catatan:''}),form=ref(defaultForm());
+watch(()=>props.documents,v=>localDocuments.value=[...v]);watch(showModal,v=>document.body.style.overflow=v?'hidden':'');
+onMounted(()=>window.addEventListener('keydown',handleKey));onBeforeUnmount(()=>{window.removeEventListener('keydown',handleKey);document.body.style.overflow=''});function handleKey(e){if(e.key==='Escape'&&showModal.value)closeModal()}
+const doneCount=computed(()=>localDocuments.value.filter(d=>d.cpw_status&&d.cpp_status).length),cpwProgress=computed(()=>props.totalDok?Math.round(props.doneCpw/props.totalDok*100):0),cppProgress=computed(()=>props.totalDok?Math.round(props.doneCpp/props.totalDok*100):0),hasFilters=computed(()=>Boolean(searchQuery.value||filterStatus.value));
+const filteredDocuments=computed(()=>{const q=searchQuery.value.toLowerCase();return localDocuments.value.filter(d=>(!q||d.nama_dokumen?.toLowerCase().includes(q)||d.catatan?.toLowerCase().includes(q))&&(!filterStatus.value||(filterStatus.value==='done'?(d.cpw_status&&d.cpp_status):(!d.cpw_status||!d.cpp_status))))});
+const filteredTotalBiaya=computed(()=>filteredDocuments.value.reduce((total,doc)=>total+Number(doc.biaya||0),0));
+const canDragRows=computed(()=>!hasFilters.value);const formatRp=n=>'Rp'+Number(n||0).toLocaleString('id-ID');
+function resetFilters(){searchQuery.value='';filterStatus.value=''}function docForm(d){return{nama_dokumen:d.nama_dokumen,biaya:d.biaya||'',catatan:d.catatan||''}}function openCreate(){editItem.value=null;copyItem.value=null;form.value=defaultForm();showModal.value=true}function openCopy(d){editItem.value=null;copyItem.value=d;form.value=docForm(d);showModal.value=true}function openEdit(d){editItem.value=d;copyItem.value=null;form.value=docForm(d);showModal.value=true}function closeModal(){showModal.value=false;editItem.value=null;copyItem.value=null}
+function save(){saving.value=true;const editing=editItem.value;router[editing?'patch':'post'](editing?route('dokumen-kua.update',editing.id):route('dokumen-kua.store'),{...form.value,biaya:Number(form.value.biaya)||0},{preserveScroll:true,onSuccess:()=>{showToast(editing?'Dokumen berhasil diperbarui.':copyItem.value?'Salinan dokumen berhasil ditambahkan.':'Dokumen berhasil ditambahkan.');closeModal()},onFinish:()=>saving.value=false})}
+function toggleCpw(d){d.cpw_status=!d.cpw_status;router.patch(route('kua.toggle-cpw',d.id),{},{preserveScroll:true,onSuccess:()=>showToast('Status calon pengantin wanita diperbarui.'),onError:()=>{d.cpw_status=!d.cpw_status;showToast('Status calon pengantin wanita gagal diperbarui.')}})}function toggleCpp(d){d.cpp_status=!d.cpp_status;router.patch(route('kua.toggle-cpp',d.id),{},{preserveScroll:true,onSuccess:()=>showToast('Status calon pengantin pria diperbarui.'),onError:()=>{d.cpp_status=!d.cpp_status;showToast('Status calon pengantin pria gagal diperbarui.')}})}function confirmDelete(d){confirmDeleteDialog(()=>router.delete(route('dokumen-kua.destroy',d.id),{preserveScroll:true,onSuccess:()=>showToast('Dokumen berhasil dihapus.')}),{title:'Hapus dokumen ini?',description:`Dokumen “${d.nama_dokumen}” akan dihapus permanen beserta status kelengkapannya.`})}
+function rowClasses(d){return{complete:d.cpw_status&&d.cpp_status,'is-dragging':draggedId.value===d.id,'is-drop-before':dropPlacement(d.id)==='before','is-drop-after':dropPlacement(d.id)==='after','is-drag-disabled':!canDragRows.value}}function startDrag(d,index,e){if(!canDragRows.value)return;draggedIndex.value=index;draggedId.value=d.id;if(e?.dataTransfer)e.dataTransfer.effectAllowed='move'}function handleTouchStart(_,d,index){if(canDragRows.value)startDrag(d,index)}function handleTouchMove(e){if(draggedId.value===null)return;e.preventDefault();const row=document.elementFromPoint(e.touches[0].clientX,e.touches[0].clientY)?.closest('.record-card,tr.draggable-row');if(!row)return;const cards=[...document.querySelectorAll('.mobile-records .record-card')],index=cards.includes(row)?cards.indexOf(row):[...row.parentNode.children].indexOf(row),item=filteredDocuments.value[index];if(item)setDragOver(item,index)}function handleTouchEnd(){dragOverIndex.value!==null?dropRow(dragOverIndex.value):endDrag()}function setDragOver(d,index){if(canDragRows.value&&draggedId.value!==d.id){dragOverId.value=d.id;dragOverIndex.value=index}}function dropPlacement(id){if(dragOverId.value!==id)return null;return dragOverIndex.value>draggedIndex.value?'after':'before'}function dropRow(index){if(!canDragRows.value||draggedIndex.value===null||index===draggedIndex.value){endDrag();return}const previous=[...localDocuments.value],list=[...localDocuments.value],[moved]=list.splice(draggedIndex.value,1);list.splice(index,0,moved);localDocuments.value=list.map((d,i)=>({...d,no:i+1}));router.patch(route('dokumen-kua.reorder'),{ids:localDocuments.value.map(d=>d.id)},{preserveScroll:true,onSuccess:()=>showToast('Urutan dokumen berhasil disimpan.'),onError:()=>{localDocuments.value=previous;showToast('Urutan dokumen gagal disimpan.')}});endDrag()}function endDrag(){draggedIndex.value=draggedId.value=dragOverIndex.value=dragOverId.value=null}
+function exportToExcel(){if(!filteredDocuments.value.length){showToast('Tidak ada data untuk diekspor');return}const now=new Date(),rows=filteredDocuments.value.map((d,i)=>[d.no||i+1,d.nama_dokumen,d.cpw_status?'Lengkap':'Belum',d.cpp_status?'Lengkap':'Belum',d.biaya||0,d.catatan||'']),total=filteredDocuments.value.reduce((n,d)=>n+Number(d.biaya||0),0);rows.push(['','TOTAL','','',total,'']);const ws=XLSX.utils.aoa_to_sheet([['DAFTAR DOKUMEN KUA'],[`Dicetak pada: ${now.toLocaleString('id-ID')}`],[],['No','Nama Dokumen','Status CPW','Status CPP','Biaya','Catatan'],...rows]);ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:5}},{s:{r:1,c:0},e:{r:1,c:5}}];ws['!cols']=[{wch:5},{wch:40},{wch:15},{wch:15},{wch:18},{wch:40}];const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Dokumen KUA');XLSX.writeFile(wb,`Dokumen_KUA_${now.toISOString().split('T')[0]}.xlsx`);showToast('Data berhasil diekspor ke Excel')}
+const EmptyState=defineComponent({props:{filtered:Boolean},emits:['create','reset'],setup(p,{emit}){return()=>h('div',{class:'empty-card'},[h(FileText),h('h2',p.filtered?'Dokumen tidak ditemukan':'Belum ada dokumen KUA'),h('p',p.filtered?'Tidak ada dokumen yang sesuai dengan pencarian atau filter.':'Mulai susun persyaratan administrasi untuk kedua calon pengantin.'),h('button',{class:p.filtered?'secondary-action':'primary-action',onClick:()=>emit(p.filtered?'reset':'create')},[h(p.filtered?X:Plus),p.filtered?'Reset Filter':'Tambah Dokumen Pertama'])])}});
 </script>
 
 <style scoped>
-.summary-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 18px; }
-@media (min-width: 640px) { .summary-grid { grid-template-columns: repeat(4, 1fr); } }
-.summary-card { padding: 18px; }
-.summary-card__label { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; color: var(--ink-400); }
-.summary-card__value { font-size: 22px; font-weight: 800; color: var(--ink-900); margin-top: 6px; letter-spacing: -0.02em; }
-
-.toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
-.toolbar__search { position: relative; flex: 1; min-width: 180px; }
-.search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--ink-400); font-size: 12px; pointer-events: none; }
-.search-input { padding-left: 30px; }
-.toolbar__select { max-width: 160px; }
-
-.draggable-row { cursor: grab; position: relative; transition: background 0.18s ease, opacity 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease; }
-.draggable-row.is-dragging { opacity: 0.45; transform: scale(0.995); }
-.draggable-row.is-drop-target { background: var(--rose-pale); box-shadow: inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
-.draggable-row.is-drop-before { box-shadow: inset 0 3px 0 var(--rose), inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
-.draggable-row.is-drop-after { box-shadow: inset 0 -3px 0 var(--rose), inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
-.draggable-row.is-drop-before td:first-child::before,
-.draggable-row.is-drop-after td:first-child::after { content: ''; position: absolute; left: 10px; width: 8px; height: 8px; border-radius: 999px; background: var(--rose); box-shadow: 0 0 0 3px var(--rose-pale); }
-.draggable-row.is-drop-before td:first-child::before { top: -4px; }
-.draggable-row.is-drop-after td:first-child::after { bottom: -4px; }
-.draggable-row.is-drag-disabled { cursor: default; }
-.drag-cell { white-space: nowrap; touch-action: none; padding: 12px; cursor: grab; }
-.drag-cell i { color: var(--ink-300); margin-right: 6px; font-size: 16px; }
-.is-drag-disabled .drag-cell i { opacity: 0.35; }
-
-.mono-text { font-family: monospace; font-size: 11px; color: var(--ink-300); }
-.item-name { font-size: 13.5px; font-weight: 500; color: var(--ink-800); }
-.text-right { text-align: right; }
-.text-center { text-align: center; }
-.text-muted { font-size: 12.5px; color: var(--ink-400); }
-
-.row--done td { background: var(--ink-50); }
-
-.check-btn {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  font-size: 20px;
-  line-height: 1;
-  transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-.check-btn:hover { transform: scale(1.15); }
-.check-done { color: var(--ok-text); }
-.check-pending { color: var(--text-dim); }
+.kua-page{display:grid;gap:18px;padding-bottom:24px}.hero-card{display:flex;min-height:190px;padding:34px 38px;align-items:center;justify-content:space-between;gap:28px;border:1px solid var(--border);border-radius:20px;background:radial-gradient(circle at 90% 20%,rgba(111,146,95,.24),transparent 34%),linear-gradient(135deg,#fff,#eef4e8)}.eyebrow{display:block;margin-bottom:7px;color:var(--accent-hover);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}.hero-card h1{font-family:var(--font-display);font-size:clamp(28px,3vw,38px);line-height:1.15}.hero-card p{margin-top:9px;color:var(--text-muted);font-size:14px}.primary-action,.secondary-action,.icon-action,.filter-toggle,.drag-handle,.status-button,.mobile-status button{display:inline-flex;align-items:center;justify-content:center;border:0;font:inherit;cursor:pointer}.primary-action{min-height:43px;padding:10px 16px;gap:8px;border-radius:10px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:700}.primary-action:hover{background:var(--accent-hover)}.primary-action:disabled{opacity:.65;cursor:wait}.primary-action svg,.secondary-action svg{width:16px}.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.summary-card{display:flex;min-width:0;padding:18px 20px;gap:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface);box-shadow:var(--shadow-sm)}.summary-icon{display:flex;width:38px;height:38px;align-items:center;justify-content:center;flex:none;border-radius:10px;background:var(--accent-soft);color:var(--accent-hover)}.summary-icon svg{width:20px}.summary-icon--money{background:var(--warn-bg);color:var(--warn-text)}.summary-label{font-size:12px;font-weight:600;color:var(--text-muted)}.summary-value{margin-top:5px;font-size:clamp(19px,2vw,25px);font-weight:800}.summary-sub{margin-top:4px;color:var(--text-muted);font-size:11.5px}.progress-track{height:6px;margin-top:7px;overflow:hidden;border-radius:99px;background:var(--surface-muted)}.progress-track span{display:block;height:100%;background:linear-gradient(90deg,var(--accent-hover),var(--accent-light))}.data-panel{overflow:hidden;border:1px solid var(--border);border-radius:14px;background:var(--surface);box-shadow:var(--shadow-sm)}.toolbar{display:flex;padding:12px;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border)}.toolbar-top{display:flex;flex:1}.search-wrap{position:relative;flex:1}.search-wrap>svg{position:absolute;left:13px;top:50%;width:16px;transform:translateY(-50%);color:var(--text-dim)}.toolbar-control,.secondary-action{box-sizing:border-box;height:40px;min-height:40px;padding:0 12px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--text-muted);font:500 12.5px var(--font);line-height:1}.search-wrap input{width:100%;padding-left:39px}.toolbar-filters{display:flex;gap:8px}.select-wrap{position:relative;display:flex}.select-wrap select{width:190px;padding-right:34px;appearance:none}.select-wrap>svg{position:absolute;right:11px;top:50%;width:15px;transform:translateY(-50%);pointer-events:none}.secondary-action{gap:7px}.filter-toggle{display:none;position:relative;width:44px;height:44px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--text-muted)}.filter-toggle svg{width:19px}.filter-toggle span{position:absolute;top:7px;right:7px;width:6px;height:6px;border-radius:50%;background:var(--accent)}.filter-toggle.active{background:var(--accent-soft);color:var(--accent-hover)}.desktop-table{overflow-x:auto}.tbl{width:100%;border-collapse:collapse}.tbl th{height:42px;padding:0 12px;background:var(--surface-muted);color:var(--text-muted);font-size:10.5px;font-weight:700;letter-spacing:.055em;text-transform:uppercase}.tbl td{padding:12px;border-bottom:1px solid var(--border);font-size:12px}.tbl tbody tr.complete{background:var(--ok-bg)}.right{text-align:right}.center{text-align:center}.strong{font-weight:700}.note{max-width:220px;color:var(--text-muted)}.actions{display:flex;justify-content:center}.icon-action{width:36px;height:36px;border-radius:8px;background:transparent;color:var(--text-dim)}.icon-action:hover{background:var(--accent-soft);color:var(--accent-hover)}.icon-action.danger:hover{background:var(--danger-bg);color:var(--danger-text)}.icon-action svg{width:15px}.status-button{gap:6px;padding:6px 9px;border-radius:99px;background:var(--surface-muted);color:var(--text-muted);font-size:11px}.status-button.done{background:var(--ok-bg);color:var(--ok-text)}.status-button svg{width:16px}.drag-cell{white-space:nowrap;touch-action:none;color:var(--text-dim);cursor:grab}.drag-cell svg{display:inline;width:16px;margin-right:4px;vertical-align:middle;color:var(--text-dim);opacity:.62;stroke-width:1.8}.is-drag-disabled .drag-cell svg{opacity:.28}.draggable-row.is-dragging{opacity:.45}.draggable-row.is-drop-before{box-shadow:inset 0 3px var(--accent)}.draggable-row.is-drop-after{box-shadow:inset 0 -3px var(--accent)}.is-drag-disabled .drag-cell{opacity:.4;cursor:default}.mobile-records{display:none}.empty-card{display:flex;min-height:250px;padding:32px;align-items:center;justify-content:center;flex-direction:column;text-align:center}.empty-card>svg{width:42px;color:var(--accent)}.empty-card h2{margin-top:12px;font-size:16px}.empty-card p{margin:6px 0 17px;color:var(--text-muted);font-size:12px}.drawer-backdrop{position:fixed;inset:0;z-index:1000;display:flex;justify-content:flex-end;background:rgba(34,45,37,.28);backdrop-filter:blur(2px);animation:drawerFade .2s ease}.drawer{display:flex;width:min(440px,100vw);height:100dvh;flex-direction:column;background:var(--surface);box-shadow:-18px 0 48px rgba(40,54,44,.16);animation:drawerFromRight .25s ease}.drawer-handle{display:none}.drawer-header{display:flex;min-height:86px;padding:20px 22px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}.drawer-header h3{font-family:var(--font-display);font-size:18px}.drawer-body{display:flex;min-height:0;padding:22px;gap:16px;flex:1;flex-direction:column;overflow:auto}.field{display:grid;gap:7px}.field label{font-size:12.5px;font-weight:650}.field label span{color:var(--accent)}.field-control{position:relative;display:flex;align-items:center;border:1px solid var(--border);border-radius:10px;background:#fbfcfa}.field-control:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}.field-control>svg{position:absolute;left:13px;width:17px;color:#7a8b7e}.field-control input,.field-control textarea{width:100%;padding:10px 12px 10px 40px;border:0!important;background:transparent!important;box-shadow:none!important;font:500 13px var(--font)}.field-control input{min-height:46px}.field-control.textarea{align-items:flex-start}.field-control.textarea>svg{top:7px}.drawer-footer{display:flex;justify-content:flex-end;gap:9px;margin:auto -22px -22px;padding:18px 22px 22px;border-top:1px solid var(--border)}.spinner{animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}@keyframes drawerFade{from{opacity:0}}@keyframes drawerFromRight{from{transform:translateX(100%)}}@keyframes drawerFromBottom{from{transform:translateY(100%)}}
+@media(max-width:900px){.summary-grid{grid-template-columns:1fr 1fr}.toolbar{align-items:stretch;flex-direction:column}.toolbar-filters{width:100%}}
+@media(max-width:767px){.kua-page{gap:14px}.hero-card{min-height:auto;padding:18px 16px;align-items:stretch;flex-direction:column;gap:14px}.hero-card h1{font-size:25px}.hero-card p{font-size:12.5px}.hero-card .primary-action{width:100%}.summary-grid{gap:8px}.summary-card{padding:13px;gap:9px}.summary-icon{width:34px;height:34px}.summary-value{font-size:18px}.data-panel{overflow:visible;border:0;background:transparent;box-shadow:none}.toolbar{display:block;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}.toolbar-top{gap:8px}.toolbar-control,.secondary-action{height:44px;min-height:44px}.filter-toggle{display:flex}.toolbar-filters{display:none;grid-template-columns:1fr 1fr;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}.toolbar-filters.open{display:grid}.toolbar-filters>*{width:100%}.select-wrap select{width:100%}.export-action{grid-column:1/-1}.desktop-table{display:none}.mobile-records{display:grid;gap:10px;margin-top:14px}.record-card{padding:14px;border:1px solid var(--border);border-left:4px solid var(--warn-text);border-radius:12px;background:var(--surface);box-shadow:var(--shadow-sm)}.record-card.complete{border-left-color:var(--ok-text)}.record-head{display:flex;justify-content:space-between;gap:8px}.record-head h2{margin-top:6px;font-size:14px}.record-head>strong{font-size:12px}.category{color:var(--text-muted);font-size:10.5px}.mobile-status{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:13px}.mobile-status .status-button{width:100%;min-height:40px;justify-content:flex-start;padding:9px}.mobile-status .status-button.done{background:var(--ok-bg);color:var(--ok-text)}.mobile-status svg{width:15px}.record-note{margin-top:10px;color:var(--text-muted);font-size:11.5px}.record-footer{display:flex;margin-top:8px;align-items:center;justify-content:space-between}.drag-handle{gap:5px;padding:8px;background:none;color:var(--text-muted);font-size:11px;touch-action:none}.drag-handle svg{width:15px}.drawer-backdrop{align-items:flex-end}.drawer{width:100%;height:auto;max-height:92dvh;border-radius:20px 20px 0 0;box-shadow:0 -18px 48px rgba(40,54,44,.16);animation:drawerFromBottom .25s ease}.drawer-handle{display:block;width:40px;height:4px;margin:9px auto 0;border-radius:99px;background:var(--border)}.drawer-header{min-height:68px;padding:10px 16px 13px}.drawer-body{padding:16px 16px calc(16px + env(safe-area-inset-bottom))}.field-control input,.field-control textarea{font-size:16px}.drawer-footer{position:sticky;bottom:calc(-16px - env(safe-area-inset-bottom));margin:auto -16px calc(-16px - env(safe-area-inset-bottom));padding:12px 16px calc(16px + env(safe-area-inset-bottom));background:var(--surface)}.drawer-footer>*{flex:1}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}.primary-action:focus-visible,.secondary-action:focus-visible,.icon-action:focus-visible,.filter-toggle:focus-visible,.status-button:focus-visible,.drag-handle:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style>

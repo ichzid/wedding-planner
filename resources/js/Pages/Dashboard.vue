@@ -1,262 +1,168 @@
 <template>
   <AppLayout>
-    <Head title="Dashboard" />
-
-    <!-- Greeting Card -->
-    <div class="greeting-card card">
-      <div class="greeting-card__inner">
-        <div class="greeting-card__text">
-          <h1 class="greeting-card__title">{{ greetingText }}</h1>
-          <p class="greeting-card__sub">Yuk, lanjutkan persiapan pernikahan impianmu ✨</p>
-          <p v-if="countdownText" class="greeting-card__countdown">
-            <i class="fa-solid fa-heart"></i> {{ countdownText }}
-          </p>
+    <div class="dashboard">
+      <header class="hero-card">
+        <div class="hero-card__content">
+          <span class="hero-card__eyebrow">Ringkasan pernikahan</span>
+          <h1>{{ greetingText }}</h1>
+          <p>Pantau seluruh persiapan hari bahagia dalam satu tempat.</p>
+          <div v-if="countdownText" class="countdown-badge">
+            <CalendarHeart aria-hidden="true" />
+            <span>{{ countdownText }}</span>
+          </div>
         </div>
-        <div class="quick-actions">
-          <Link :href="route('checklist.index')" class="btn btn--primary btn--sm">
-            <i class="fa-solid fa-list-check fa-xs"></i> Checklist
+        <div class="quick-actions" aria-label="Akses cepat">
+          <Link :href="route('checklist.index')" class="quick-action quick-action--primary">
+            <ListChecks aria-hidden="true" />
+            <span>Daftar Persiapan</span>
           </Link>
-          <Link :href="route('budget.index')" class="btn btn--outline btn--sm">
-            <i class="fa-solid fa-wallet fa-xs"></i> Budget
+          <Link :href="route('budget.index')" class="quick-action">
+            <WalletCards aria-hidden="true" />
+            <span>Anggaran</span>
           </Link>
-          <Link :href="route('tamu.index')" class="btn btn--outline btn--sm">
-            <i class="fa-solid fa-users fa-xs"></i> Tamu
+          <Link :href="route('tamu.index')" class="quick-action">
+            <UsersRound aria-hidden="true" />
+            <span>Daftar Tamu</span>
           </Link>
         </div>
-      </div>
-    </div>
+      </header>
 
-    <!-- Stat Cards — row 1: original 4 -->
-    <div class="stats-grid">
-      <Link :href="route('checklist.index')" class="stat-card stat-card--link stat-card--pink">
-        <div class="stat-card__header">
-          <div class="stat-card__icon"><i class="fa-solid fa-list-check"></i></div>
-          <i class="fa-solid fa-arrow-right stat-card__arrow"></i>
-        </div>
-        <p class="stat-card__value">{{ props.doneChecklist }}<span class="stat-card__total">/{{ props.totalChecklist }}</span></p>
-        <p class="stat-card__label">Checklist Selesai</p>
-        <div class="prog-track mt-3">
-          <div class="prog-fill" :style="{ width: props.progressChecklist + '%' }"></div>
-        </div>
-      </Link>
-
-      <Link :href="route('budget.index')" class="stat-card stat-card--link stat-card--peach">
-        <div class="stat-card__header">
-          <div class="stat-card__icon"><i class="fa-solid fa-wallet"></i></div>
-          <i class="fa-solid fa-arrow-right stat-card__arrow"></i> 
-        </div>
-        <p class="stat-card__value">{{ props.progressBudget }}<span class="stat-card__total">%</span></p>
-        <p class="stat-card__label">Budget Terbayar</p>
-        <div class="prog-track mt-3">
-          <div class="prog-fill" :style="{ width: props.progressBudget + '%' }"></div>
-        </div>
-      </Link>
-
-      <Link :href="route('seserahan.index')" class="stat-card stat-card--link stat-card--lavender">
-        <div class="stat-card__header">
-          <div class="stat-card__icon"><i class="fa-solid fa-gift"></i></div>
-          <i class="fa-solid fa-arrow-right stat-card__arrow"></i>
-        </div>
-        <p class="stat-card__value">{{ props.sudahBeli }}<span class="stat-card__total">/{{ props.totalSeserahan }}</span></p>
-        <p class="stat-card__label">Seserahan Dibeli</p>
-        <div class="prog-track mt-3">
-          <div class="prog-fill" :style="{ width: (props.totalSeserahan > 0 ? Math.round(props.sudahBeli/props.totalSeserahan*100) : 0) + '%' }"></div>
-        </div>
-      </Link>
-
-      <Link :href="route('dokumen-kua.index')" class="stat-card stat-card--link stat-card--sage">
-        <div class="stat-card__header">
-          <div class="stat-card__icon"><i class="fa-solid fa-file-contract"></i></div>
-          <i class="fa-solid fa-arrow-right stat-card__arrow"></i>
-        </div>
-        <p class="stat-card__value">{{ props.doneKua }}<span class="stat-card__total">/{{ props.totalKua }}</span></p>
-        <p class="stat-card__label">Dokumen KUA Selesai</p>
-        <div class="prog-track mt-3">
-          <div class="prog-fill" :style="{ width: (props.totalKua > 0 ? Math.round(props.doneKua/props.totalKua*100) : 0) + '%' }"></div>
-        </div>
-      </Link>
-    </div>
-
-    <!-- Info Pernikahan + Tamu row -->
-    <div class="info-row">
-
-      <!-- Info Pernikahan -->
-      <div class="card info-card">
-        <div class="section-header">
-          <h2 class="section-title"><i class="fa-solid fa-heart" style="color:var(--rose);margin-right:8px;"></i>Info Pernikahan</h2>
-        </div>
-        <div class="info-list">
-          <div class="info-item">
-            <span class="info-label"><i class="fa-solid fa-ring"></i> Mempelai</span>
-            <span class="info-val">{{ props.namaCpw || '-' }} & {{ props.namaCpp || '-' }}</span>
+      <section aria-labelledby="progress-title">
+        <div class="section-heading">
+          <div>
+            <span class="section-heading__eyebrow">Progres utama</span>
+            <h2 id="progress-title">Progres Persiapan</h2>
           </div>
-          <div class="info-item">
-            <span class="info-label"><i class="fa-solid fa-calendar-days"></i> Tanggal</span>
-            <span class="info-val">{{ formattedDate }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label"><i class="fa-solid fa-mosque"></i> Akad</span>
-            <span class="info-val">{{ props.lokasiAkad || '-' }}</span>
-          </div>
-          <div class="info-item">
-            <span class="info-label"><i class="fa-solid fa-champagne-glasses"></i> Resepsi</span>
-            <span class="info-val">{{ props.lokasiResepsi || '-' }}</span>
-          </div>
+          <p>Lihat perkembangan setiap kebutuhan utama.</p>
         </div>
+
+        <div class="stats-grid">
+          <Link v-for="stat in summaryStats" :key="stat.label" :href="route(stat.route)" class="stat-card">
+            <div class="stat-card__top">
+              <span class="icon-box" :class="`icon-box--${stat.tone}`">
+                <component :is="stat.icon" aria-hidden="true" />
+              </span>
+              <ArrowUpRight class="stat-card__arrow" aria-hidden="true" />
+            </div>
+            <div class="stat-card__body">
+              <p class="stat-card__value">{{ stat.value }}<span>{{ stat.suffix }}</span></p>
+              <p class="stat-card__label">{{ stat.label }}</p>
+            </div>
+            <div class="progress-block">
+              <div class="progress-meta"><span>Progres</span><strong>{{ stat.progress }}%</strong></div>
+              <div class="progress-track"><span :style="{ width: stat.progress + '%' }"></span></div>
+            </div>
+          </Link>
+        </div>
+      </section>
+
+      <div class="overview-grid">
+        <section class="panel wedding-panel" aria-labelledby="wedding-title">
+          <div class="panel__header">
+            <div class="panel__title">
+              <span class="icon-box icon-box--sage"><HeartHandshake aria-hidden="true" /></span>
+              <div><span>Hari bahagia</span><h2 id="wedding-title">Informasi Pernikahan</h2></div>
+            </div>
+          </div>
+          <dl class="detail-list">
+            <div><dt><Heart aria-hidden="true" />Calon Pengantin</dt><dd>{{ coupleNames }}</dd></div>
+            <div><dt><CalendarDays aria-hidden="true" />Tanggal</dt><dd>{{ formattedDate }}</dd></div>
+            <div><dt><MapPin aria-hidden="true" />Lokasi Akad</dt><dd>{{ props.lokasiAkad || 'Belum ditentukan' }}</dd></div>
+            <div><dt><PartyPopper aria-hidden="true" />Lokasi Resepsi</dt><dd>{{ props.lokasiResepsi || 'Belum ditentukan' }}</dd></div>
+          </dl>
+        </section>
+
+        <section class="panel guest-panel" aria-labelledby="guest-title">
+          <div class="panel__header">
+            <div class="panel__title">
+              <span class="icon-box icon-box--mist"><UsersRound aria-hidden="true" /></span>
+              <div><span>Undangan</span><h2 id="guest-title">Daftar Tamu</h2></div>
+            </div>
+            <Link :href="route('tamu.index')" class="text-link">Lihat semua <ArrowRight aria-hidden="true" /></Link>
+          </div>
+          <div class="guest-stats">
+            <div><strong>{{ props.totalTamu }}</strong><span>Total tamu</span></div>
+            <div><strong>{{ props.tamuCpw }}</strong><span>Pihak wanita</span></div>
+            <div><strong>{{ props.tamuCpp }}</strong><span>Pihak pria</span></div>
+            <div><strong>{{ props.hadir }}</strong><span>Konfirmasi hadir</span></div>
+          </div>
+          <div class="progress-block guest-progress">
+            <div class="progress-meta"><span>Konfirmasi kehadiran</span><strong>{{ attendanceProgress }}%</strong></div>
+            <div class="progress-track"><span :style="{ width: attendanceProgress + '%' }"></span></div>
+          </div>
+        </section>
       </div>
 
-      <!-- Ringkasan Tamu -->
-      <div class="card tamu-card">
-        <div class="section-header">
-          <h2 class="section-title"><i class="fa-solid fa-users" style="color:var(--rose);margin-right:8px;"></i>Daftar Undangan</h2>
-          <Link :href="route('tamu.index')" class="btn btn--ghost btn--sm">
-            Lihat semua <i class="fa-solid fa-arrow-right fa-xs"></i>
-          </Link>
-        </div>
-        <div class="tamu-stats">
-          <div class="tamu-stat">
-            <div class="tamu-stat__val">{{ props.totalTamu }}</div>
-            <div class="tamu-stat__label">Total Tamu</div>
+      <div class="details-grid">
+        <section class="panel budget-panel" aria-labelledby="budget-title">
+          <div class="panel__header">
+            <div class="panel__title">
+              <span class="icon-box icon-box--sand"><WalletCards aria-hidden="true" /></span>
+              <div><span>Keuangan</span><h2 id="budget-title">Ringkasan Anggaran</h2></div>
+            </div>
+            <Link :href="route('budget.index')" class="text-link">Kelola <ArrowRight aria-hidden="true" /></Link>
           </div>
-          <div class="tamu-stat tamu-stat--cpw">
-            <div class="tamu-stat__val">{{ props.tamuCpw }}</div>
-            <div class="tamu-stat__label">Pihak Wanita</div>
+          <div class="budget-figures">
+            <div><span>Total estimasi</span><strong>{{ formatRp(props.totalEstimasi) }}</strong></div>
+            <div><span>Sudah dibayar</span><strong>{{ formatRp(props.totalAktual) }}</strong></div>
+            <div><span>Sisa anggaran</span><strong>{{ formatRp(props.totalEstimasi - props.totalAktual) }}</strong></div>
           </div>
-          <div class="tamu-stat tamu-stat--cpp">
-            <div class="tamu-stat__val">{{ props.tamuCpp }}</div>
-            <div class="tamu-stat__label">Pihak Pria</div>
+          <div class="progress-block budget-progress">
+            <div class="progress-meta"><span>Pembayaran anggaran</span><strong>{{ safeProgress(props.progressBudget) }}%</strong></div>
+            <div class="progress-track"><span :style="{ width: safeProgress(props.progressBudget) + '%' }"></span></div>
           </div>
-          <div class="tamu-stat tamu-stat--hadir">
-            <div class="tamu-stat__val">{{ props.hadir }}</div>
-            <div class="tamu-stat__label">Hadir</div>
+        </section>
+
+        <section class="panel kua-panel" aria-labelledby="kua-title">
+          <div class="panel__header">
+            <div class="panel__title">
+              <span class="icon-box icon-box--fern"><FileCheck2 aria-hidden="true" /></span>
+              <div><span>Administrasi</span><h2 id="kua-title">Dokumen KUA</h2></div>
+            </div>
+            <Link :href="route('dokumen-kua.index')" class="text-link">Kelola <ArrowRight aria-hidden="true" /></Link>
           </div>
-        </div>
-        <!-- Progress hadir -->
-        <div style="padding: 0 20px 16px;">
-          <div style="display:flex; justify-content:space-between; font-size:12px; color:var(--text-muted); margin-bottom:6px;">
-            <span>Konfirmasi Hadir</span>
-            <span>{{ props.totalTamu > 0 ? Math.round(props.hadir/props.totalTamu*100) : 0 }}%</span>
+          <div class="kua-list">
+            <div v-for="item in kuaProgress" :key="item.label">
+              <div class="progress-meta"><span>{{ item.label }}</span><strong>{{ item.done }}/{{ props.totalKua }}</strong></div>
+              <div class="progress-track"><span :style="{ width: item.progress + '%' }"></span></div>
+            </div>
           </div>
-          <div class="prog-track">
-            <div class="prog-fill" :style="{ width: (props.totalTamu > 0 ? Math.round(props.hadir/props.totalTamu*100) : 0) + '%' }"></div>
-          </div>
-        </div>
+        </section>
       </div>
 
-      <!-- Dokumen KUA Progress -->
-      <div class="card kua-card">
-        <div class="section-header">
-          <h2 class="section-title"><i class="fa-solid fa-file-contract" style="color:var(--rose);margin-right:8px;"></i>Dokumen KUA</h2>
-          <Link :href="route('dokumen-kua.index')" class="btn btn--ghost btn--sm">
-            Lihat <i class="fa-solid fa-arrow-right fa-xs"></i>
-          </Link>
-        </div>
-        <div class="kua-progress">
-          <div class="kua-progress-item">
-            <div class="kua-prog-header">
-              <span class="kua-prog-name"><i class="fa-solid fa-venus kua-icon--cpw"></i> {{ props.namaCpw }}</span>
-              <span class="kua-prog-count">{{ props.doneCpw }}/{{ props.totalKua }}</span>
-            </div>
-            <div class="prog-track">
-              <div class="prog-fill prog-fill--cpw" :style="{ width: (props.totalKua > 0 ? Math.round(props.doneCpw/props.totalKua*100) : 0) + '%' }"></div>
+      <div class="details-grid details-grid--bottom">
+        <section class="panel category-panel" aria-labelledby="category-title">
+          <div class="panel__header">
+            <div class="panel__title">
+              <span class="icon-box icon-box--stone"><ChartPie aria-hidden="true" /></span>
+              <div><span>Rincian biaya</span><h2 id="category-title">Anggaran per Kategori</h2></div>
             </div>
           </div>
-          <div class="kua-progress-item">
-            <div class="kua-prog-header">
-              <span class="kua-prog-name"><i class="fa-solid fa-mars kua-icon--cpp"></i> {{ props.namaCpp }}</span>
-              <span class="kua-prog-count">{{ props.doneCpp }}/{{ props.totalKua }}</span>
-            </div>
-            <div class="prog-track">
-              <div class="prog-fill prog-fill--cpp" :style="{ width: (props.totalKua > 0 ? Math.round(props.doneCpp/props.totalKua*100) : 0) + '%' }"></div>
+          <div v-if="budgetCategories.length" class="category-list">
+            <div v-for="item in budgetCategories" :key="item.name" class="category-item">
+              <div class="category-item__meta"><strong>{{ item.name }}</strong><span>{{ formatRpShort(item.estimasi) }} · {{ item.progress }}%</span></div>
+              <div class="progress-track"><span :style="{ width: item.progress + '%' }"></span></div>
             </div>
           </div>
-          <div class="kua-progress-item">
-            <div class="kua-prog-header">
-              <span class="kua-prog-name"><i class="fa-solid fa-circle-check" style="color:var(--ok-text)"></i> Selesai Keduanya</span>
-              <span class="kua-prog-count">{{ props.doneKua }}/{{ props.totalKua }}</span>
-            </div>
-            <div class="prog-track">
-              <div class="prog-fill" :style="{ width: (props.totalKua > 0 ? Math.round(props.doneKua/props.totalKua*100) : 0) + '%' }"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+          <div v-else class="empty-state"><WalletCards aria-hidden="true" /><strong>Belum ada anggaran</strong><span>Tambahkan rincian melalui menu Anggaran.</span></div>
+        </section>
 
-    <!-- Bottom: Budget summary + Category + Pending Checklist -->
-    <div class="dashboard-bottom">
-      <!-- Budget Summary -->
-      <div class="card budget-summary">
-        <div class="section-header">
-          <h2 class="section-title"><i class="fa-solid fa-wallet" style="color:var(--rose);margin-right:8px;"></i>Ringkasan Budget</h2>
-          <Link :href="route('budget.index')" class="btn btn--ghost btn--sm">
-            Lihat semua <i class="fa-solid fa-arrow-right fa-xs"></i>
-          </Link>
-        </div>
-        <div class="budget-figures">
-          <div class="budget-figure">
-            <p class="budget-figure__label">Total Estimasi</p>
-            <p class="budget-figure__value">{{ formatRp(props.totalEstimasi) }}</p>
-          </div>
-          <div class="budget-figure">
-            <p class="budget-figure__label">Sudah Dibayar</p>
-            <p class="budget-figure__value">{{ formatRp(props.totalAktual) }}</p>
-          </div>
-          <div class="budget-figure">
-            <p class="budget-figure__label">Sisa</p>
-            <p class="budget-figure__value budget-figure__value--muted">{{ formatRp(props.totalEstimasi - props.totalAktual) }}</p>
-          </div>
-        </div>
-        <div class="prog-track mx-4 mt-4">
-          <div class="prog-fill" :style="{ width: props.progressBudget + '%' }"></div>
-        </div>
-        <p class="prog-label">{{ props.progressBudget }}% terbayar</p>
-      </div>
-
-      <!-- Budget by category -->
-      <div class="card kat-card">
-        <div class="section-header">
-          <h2 class="section-title"><i class="fa-solid fa-chart-pie" style="color:var(--rose);margin-right:8px;"></i>Budget per Kategori</h2>
-        </div>
-        <div class="kat-list">
-          <div v-for="(data, kat) in props.budgetByKategori" :key="kat" class="kat-row">
-            <span class="kat-name">{{ kat }}</span>
-            <div class="kat-bar-wrap">
-              <div class="prog-track" style="flex: 1">
-                <div class="prog-fill" :style="{ width: getPct(data) + '%' }"></div>
-              </div>
+        <section class="panel checklist-panel" aria-labelledby="checklist-title">
+          <div class="panel__header">
+            <div class="panel__title">
+              <span class="icon-box icon-box--sage"><Clock3 aria-hidden="true" /></span>
+              <div><span>Prioritas berikutnya</span><h2 id="checklist-title">Persiapan Belum Selesai</h2></div>
             </div>
-            <span class="kat-amount">{{ formatRpShort(data.estimasi) }}</span>
-            <span class="kat-pct">{{ getPct(data) }}%</span>
+            <Link :href="route('checklist.index')" class="text-link">Lihat semua <ArrowRight aria-hidden="true" /></Link>
           </div>
-          <div v-if="!Object.keys(props.budgetByKategori).length" class="empty-state">
-            <i class="fa-solid fa-wallet empty-state__icon"></i>
-            <p class="empty-state__text">Belum ada data budget</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Pending Checklist -->
-      <div class="card pending-card">
-        <div class="section-header">
-          <h2 class="section-title"><i class="fa-solid fa-clock" style="color:var(--rose);margin-right:8px;"></i>Persiapan Belum Selesai</h2>
-          <Link :href="route('checklist.index')" class="btn btn--ghost btn--sm">
-            Lihat <i class="fa-solid fa-arrow-right fa-xs"></i>
-          </Link>
-        </div>
-        <div class="pending-list">
-          <div v-if="props.pendingChecklists.length === 0" class="empty-state" style="padding:24px;">
-            <i class="fa-solid fa-circle-check empty-state__icon" style="color:var(--ok-text)"></i>
-            <p class="empty-state__text">Semua checklist sudah selesai! 🎉</p>
-          </div>
-          <div v-for="item in props.pendingChecklists" :key="item.id" class="pending-item">
-            <div class="pending-dot"></div>
-            <div class="pending-body">
-              <div class="pending-task">{{ item.persiapan }}</div>
-              <div class="pending-range">{{ item.bulan_range }}</div>
+          <div v-if="props.pendingChecklists.length" class="checklist-list">
+            <div v-for="item in props.pendingChecklists" :key="item.id" class="checklist-item">
+              <span class="checklist-item__marker"><Circle aria-hidden="true" /></span>
+              <div><strong>{{ item.persiapan }}</strong><span>{{ item.bulan_range }}</span></div>
             </div>
           </div>
-        </div>
+          <div v-else class="empty-state"><CircleCheckBig aria-hidden="true" /><strong>Semua persiapan selesai</strong><span>Kerja bagus, tidak ada tugas tertunda.</span></div>
+        </section>
       </div>
     </div>
   </AppLayout>
@@ -264,321 +170,138 @@
 
 <script setup>
 import { computed } from 'vue';
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import { ArrowRight, ArrowUpRight, CalendarDays, CalendarHeart, ChartPie, Circle, CircleCheckBig, Clock3, FileCheck2, Gift, Heart, HeartHandshake, ListChecks, MapPin, PartyPopper, UsersRound, WalletCards } from '@lucide/vue';
 
 const props = defineProps({
-  totalChecklist:    Number,
-  doneChecklist:     Number,
-  progressChecklist: Number,
-  pendingChecklists: Array,
-  totalEstimasi:     Number,
-  totalAktual:       Number,
-  progressBudget:    Number,
-  totalSeserahan:    Number,
-  sudahBeli:         Number,
-  belumBeli:         Number,
-  totalKua:          Number,
-  doneKua:           Number,
-  doneCpw:           Number,
-  doneCpp:           Number,
-  budgetByKategori:  Object,
-  totalTamu:         Number,
-  hadir:             Number,
-  tamuCpw:           Number,
-  tamuCpp:           Number,
-  weddingDate:       { type: String, default: '' },
-  namaCpw:           { type: String, default: '' },
-  namaCpp:           { type: String, default: '' },
-  lokasiAkad:        { type: String, default: '' },
-  lokasiResepsi:     { type: String, default: '' },
+  totalChecklist: Number, doneChecklist: Number, progressChecklist: Number, pendingChecklists: Array,
+  totalEstimasi: Number, totalAktual: Number, progressBudget: Number,
+  totalSeserahan: Number, sudahBeli: Number, belumBeli: Number,
+  totalKua: Number, doneKua: Number, doneCpw: Number, doneCpp: Number,
+  budgetByKategori: Object, totalTamu: Number, hadir: Number, tamuCpw: Number, tamuCpp: Number,
+  weddingDate: { type: String, default: '' }, namaCpw: { type: String, default: '' }, namaCpp: { type: String, default: '' },
+  lokasiAkad: { type: String, default: '' }, lokasiResepsi: { type: String, default: '' },
 });
+
+const safeProgress = (value) => Math.min(100, Math.max(0, Number(value) || 0));
+const ratio = (done, total) => total > 0 ? safeProgress(Math.round(done / total * 100)) : 0;
 
 const greetingText = computed(() => {
   const hour = new Date().getHours();
-  if (hour >= 4 && hour < 10) return 'Selamat Pagi, Calon Pengantin 🌅';
-  if (hour >= 10 && hour < 14) return 'Selamat Siang, Calon Pengantin ☀️';
-  if (hour >= 14 && hour < 18) return 'Selamat Sore, Calon Pengantin 🌤️';
-  return 'Selamat Malam, Calon Pengantin 🌙';
+  if (hour >= 4 && hour < 10) return 'Selamat pagi, Calon Pengantin';
+  if (hour < 14) return 'Selamat siang, Calon Pengantin';
+  if (hour < 18) return 'Selamat sore, Calon Pengantin';
+  return 'Selamat malam, Calon Pengantin';
 });
 
 const countdownText = computed(() => {
-  const wd = props.weddingDate;
-  if (!wd) return '';
-  const target = new Date(wd);
-  if (isNaN(target.getTime())) return '';
-  const now  = new Date();
-  const diff = target.getTime() - now.getTime();
-  if (diff <= 0) return 'Hari bahagia telah tiba! 🎉💍';
-  const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-  return `H-${days} hari menuju hari bahagia 💍`;
+  if (!props.weddingDate) return '';
+  const target = new Date(props.weddingDate);
+  if (Number.isNaN(target.getTime())) return '';
+  const days = Math.ceil((target.getTime() - Date.now()) / 86400000);
+  if (days < 0) return 'Hari bahagia telah terlewati';
+  if (days === 0) return 'Hari bahagia tiba hari ini';
+  return `${days} hari menuju hari bahagia`;
 });
 
+const coupleNames = computed(() => [props.namaCpw, props.namaCpp].filter(Boolean).join(' & ') || 'Belum dilengkapi');
 const formattedDate = computed(() => {
-  if (!props.weddingDate) return '-';
-  const d = new Date(props.weddingDate);
-  return d.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+  if (!props.weddingDate) return 'Belum ditentukan';
+  const date = new Date(props.weddingDate);
+  if (Number.isNaN(date.getTime())) return 'Belum ditentukan';
+  return date.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 });
+const attendanceProgress = computed(() => ratio(props.hadir, props.totalTamu));
+const summaryStats = computed(() => [
+  { label: 'Daftar Persiapan', value: props.doneChecklist, suffix: `/${props.totalChecklist}`, progress: safeProgress(props.progressChecklist), icon: ListChecks, route: 'checklist.index', tone: 'sage' },
+  { label: 'Anggaran Terbayar', value: safeProgress(props.progressBudget), suffix: '%', progress: safeProgress(props.progressBudget), icon: WalletCards, route: 'budget.index', tone: 'sand' },
+  { label: 'Seserahan Dibeli', value: props.sudahBeli, suffix: `/${props.totalSeserahan}`, progress: ratio(props.sudahBeli, props.totalSeserahan), icon: Gift, route: 'seserahan.index', tone: 'stone' },
+  { label: 'Dokumen KUA', value: props.doneKua, suffix: `/${props.totalKua}`, progress: ratio(props.doneKua, props.totalKua), icon: FileCheck2, route: 'dokumen-kua.index', tone: 'fern' },
+]);
+const kuaProgress = computed(() => [
+  { label: props.namaCpw || 'Calon pengantin wanita', done: props.doneCpw, progress: ratio(props.doneCpw, props.totalKua) },
+  { label: props.namaCpp || 'Calon pengantin pria', done: props.doneCpp, progress: ratio(props.doneCpp, props.totalKua) },
+  { label: 'Selesai untuk keduanya', done: props.doneKua, progress: ratio(props.doneKua, props.totalKua) },
+]);
+const budgetCategories = computed(() => Object.entries(props.budgetByKategori || {}).map(([name, data]) => ({ name, ...data, progress: ratio(data.aktual, data.estimasi) })));
 
-function formatRp(n) {
-  return 'Rp' + Number(n || 0).toLocaleString('id-ID');
-}
-
-function formatRpShort(n) {
-  if (!n) return 'Rp0';
-  const juta = n / 1_000_000;
-  if (juta >= 1) return 'Rp' + juta.toFixed(0) + 'jt';
-  return 'Rp' + Number(n).toLocaleString('id-ID');
-}
-
-function getPct(data) {
-  if (!data.estimasi) return 0;
-  return Math.min(100, Math.round((data.aktual / data.estimasi) * 100));
-}
+function formatRp(value) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(Number(value) || 0); }
+function formatRpShort(value) { return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', notation: 'compact', maximumFractionDigits: 1 }).format(Number(value) || 0); }
 </script>
 
 <style scoped>
-/* === GREETING CARD === */
-.greeting-card {
-  margin-bottom: var(--space-2xl);
-  overflow: hidden;
-  background: linear-gradient(135deg, #fffdfb 0%, #faf0e8 100%);
-  border: 1px solid var(--rose-light);
+.dashboard { display: grid; gap: 28px; padding-bottom: 24px; }
+.hero-card { display: flex; align-items: center; justify-content: space-between; gap: 28px; min-height: 220px; padding: 36px 40px; border: 1px solid var(--border); border-radius: 20px; background: radial-gradient(circle at 90% 20%, rgba(111,146,95,.24), transparent 34%), linear-gradient(135deg, #fff 0%, #eef4e8 100%); overflow: hidden; }
+.hero-card__content { max-width: 620px; }
+.hero-card__eyebrow, .section-heading__eyebrow, .panel__title div > span { display: block; margin-bottom: 7px; color: var(--rose); font-size: 11px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
+.hero-card h1 { color: var(--text); font-family: var(--font-display); font-size: clamp(27px, 3vw, 38px); line-height: 1.15; letter-spacing: -.025em; }
+.hero-card__content > p { margin-top: 10px; color: var(--text-muted); font-size: 15px; }
+.countdown-badge { display: inline-flex; align-items: center; gap: 8px; margin-top: 20px; padding: 8px 12px; border: 1px solid var(--rose-light); border-radius: 999px; background: rgba(255,255,255,.76); color: var(--text); font-size: 12px; font-weight: 650; }
+.countdown-badge svg { width: 16px; color: var(--rose); }
+.quick-actions { display: grid; width: min(100%, 220px); gap: 9px; flex-shrink: 0; }
+.quick-action { display: flex; align-items: center; gap: 10px; min-height: 43px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; background: rgba(255,255,255,.82); color: var(--text); font-size: 13px; font-weight: 600; text-decoration: none; transition: .2s ease; }
+.quick-action svg { width: 17px; color: var(--rose); }
+.quick-action:hover { border-color: var(--rose-light); transform: translateX(3px); }
+.quick-action--primary { border-color: var(--accent); background: var(--accent); color: #fff; }
+.quick-action--primary:hover { border-color: var(--accent-hover); background: var(--accent-hover); }
+.quick-action--primary svg { color: #fff; }
+.section-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 14px; }
+.section-heading h2 { font-size: 20px; letter-spacing: -.02em; }
+.section-heading > p { color: var(--text-muted); font-size: 13px; }
+.stats-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.stat-card, .panel { border: 1px solid var(--border); border-radius: 14px; background: var(--surface); box-shadow: var(--shadow-sm); }
+.stat-card, .panel { transition: border-color .2s ease, box-shadow .2s ease, transform .2s ease; }
+.stat-card { display: flex; min-height: 206px; padding: 20px; flex-direction: column; color: inherit; text-decoration: none; }
+@media (hover: hover) and (pointer: fine) {
+  .stat-card:hover, .panel:hover { border-color: var(--rose-light); box-shadow: var(--shadow-hover); transform: translateY(-2px); }
 }
-.greeting-card__inner {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-xl);
-  padding: var(--space-xl) var(--space-2xl);
-  flex-wrap: wrap;
-}
-.greeting-card__title {
-  font-size: 22px;
-  font-weight: 700;
-  color: var(--text);
-  font-family: var(--font-display);
-  letter-spacing: -0.02em;
-}
-.greeting-card__sub {
-  font-size: 14px;
-  color: var(--text-muted);
-  margin-top: 4px;
-}
-.greeting-card__countdown {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--rose);
-  margin-top: var(--space-sm);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.greeting-card__countdown i { color: #d48b8b; }
-.quick-actions {
-  display: flex;
-  gap: var(--space-sm);
-  flex-wrap: wrap;
-  flex-shrink: 0;
-}
-
-/* === STATS GRID === */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-lg);
-  margin-bottom: var(--space-2xl);
-}
-@media (min-width: 768px) {
-  .stats-grid { grid-template-columns: repeat(4, 1fr); }
-}
-
-/* === STAT CARD === */
-.stat-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: var(--space-xl);
-  transition: all 0.25s ease;
-}
-.stat-card--link { text-decoration: none; display: block; cursor: pointer; }
-.stat-card--link:hover {
-  border-color: var(--rose-light);
-  box-shadow: var(--shadow-hover);
-  transform: translateY(-2px);
-}
-.stat-card--pink     { background: var(--stat-pink); border-color: #f5d8df; }
-.stat-card--peach    { background: var(--stat-peach); border-color: #f5e4d0; }
-.stat-card--lavender { background: var(--stat-lavender); border-color: #e3ddf5; }
-.stat-card--sage     { background: var(--stat-sage); border-color: #d4e8da; }
-
-.stat-card__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-}
-.stat-card__icon {
-  width: 36px; height: 36px;
-  background: rgba(196,149,106,0.15);
-  border-radius: var(--radius-sm);
-  display: flex; align-items: center; justify-content: center;
-  color: var(--rose); font-size: 14px;
-  transition: all 0.25s ease;
-}
-.stat-card--link:hover .stat-card__icon { background: var(--rose); color: #fff; }
-.stat-card__arrow { color: var(--text-dim); font-size: 11px; transition: color 0.2s; }
-.stat-card--link:hover .stat-card__arrow { color: var(--rose); }
-.stat-card__value {
-  font-size: 28px; font-weight: 800; color: var(--text);
-  letter-spacing: -0.03em; line-height: 1;
-}
-.stat-card__total { font-size: 16px; font-weight: 500; color: var(--text-dim); margin-left: 2px; }
-.stat-card__label {
-  font-size: 12px; font-weight: 600; color: var(--text-muted);
-  margin-top: 6px; letter-spacing: 0.02em;
-}
-
-/* === INFO ROW === */
-.info-row {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-lg);
-  margin-bottom: var(--space-lg);
-}
-@media (min-width: 768px) {
-  .info-row { grid-template-columns: 1fr 1fr 1fr; }
-}
-
-/* === INFO CARD === */
-.info-card { overflow: hidden; }
-.info-list { padding: 14px 20px 16px; display: flex; flex-direction: column; gap: 10px; }
-.info-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 8px;
-  font-size: 13.5px;
-}
-.info-label {
-  color: var(--text-muted);
-  font-weight: 500;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 100px;
-  font-size: 12.5px;
-}
-.info-label i { width: 14px; text-align: center; color: var(--rose); }
-.info-val { color: var(--text); font-weight: 600; text-align: right; }
-
-/* === TAMU CARD === */
-.tamu-card { overflow: hidden; }
-.tamu-stats {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-md);
-  padding: 0 var(--space-xl) var(--space-lg);
-}
-.tamu-stat { text-align: center; padding: 8px 4px; }
-.tamu-stat__val { font-size: 22px; font-weight: 800; color: var(--text); line-height: 1; }
-.tamu-stat__label { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
-.tamu-stat--cpw .tamu-stat__val  { color: #c4719e; }
-.tamu-stat--cpp .tamu-stat__val  { color: #5a82c4; }
-.tamu-stat--hadir .tamu-stat__val { color: var(--ok-text); }
-
-/* === KUA CARD === */
-.kua-card { overflow: hidden; }
-.kua-progress { padding: 14px 20px 16px; display: flex; flex-direction: column; gap: 14px; }
-.kua-progress-item {}
-.kua-prog-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-  font-size: 13px;
-}
-.kua-prog-name { font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px; }
-.kua-prog-count { font-size: 12px; color: var(--text-muted); font-weight: 600; }
-.kua-icon--cpw { color: #c4719e; }
-.kua-icon--cpp { color: #5a82c4; }
-.prog-fill--cpw { background: linear-gradient(90deg, #c4719e 0%, #e8a0c8 100%); }
-.prog-fill--cpp { background: linear-gradient(90deg, #5a82c4 0%, #8ab0e8 100%); }
-
-/* === DASHBOARD BOTTOM === */
-.dashboard-bottom {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-lg);
-}
-@media (min-width: 768px) {
-  .dashboard-bottom { grid-template-columns: 1fr 1fr 1fr; }
-}
-
-/* === SECTION HEADER === */
-.section-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--space-lg) var(--space-xl);
-  border-bottom: 1px solid var(--border);
-}
-.section-title { font-size: 15px; font-weight: 600; color: var(--text); letter-spacing: -0.01em; }
-
-/* === BUDGET SUMMARY === */
-.budget-summary { overflow: hidden; }
-.budget-figures { display: flex; flex-wrap: wrap; gap: var(--space-md); padding: var(--space-lg) var(--space-xl) 0; }
-.budget-figure {
-  flex: 1;
-  min-width: 120px;
-  padding-right: var(--space-lg);
-  border-right: 1px solid var(--border);
-}
-.budget-figure:last-child { border-right: none; margin-right: 0; padding-right: 0; }
-.budget-figure__label {
-  font-size: 12px; font-weight: 600; color: var(--text-muted);
-  letter-spacing: 0.02em; margin-bottom: 4px;
-}
-.budget-figure__value { font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.budget-figure__value--muted { color: var(--text-muted); }
-.mx-4 { margin-left: var(--space-xl); margin-right: var(--space-xl); }
-.prog-label {
-  font-size: 12px; color: var(--text-muted);
-  margin-top: var(--space-sm);
-  padding: 0 var(--space-xl) var(--space-xl);
-}
-
-/* === CATEGORY CARD === */
-.kat-card { overflow: hidden; }
-.kat-list { padding: var(--space-md) var(--space-xl) var(--space-lg); }
-.kat-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 0; border-bottom: 1px solid #f5ece8;
-}
-.kat-row:last-child { border-bottom: none; }
-.kat-name {
-  font-size: 13px; color: var(--text); font-weight: 500;
-  width: 110px; flex-shrink: 0;
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-}
-.kat-bar-wrap { flex: 1; }
-.kat-amount { font-size: 12px; color: var(--text-muted); width: 56px; text-align: right; flex-shrink: 0; }
-.kat-pct { font-size: 12px; font-weight: 700; color: var(--text); width: 36px; text-align: right; flex-shrink: 0; }
-
-/* === PENDING CHECKLIST === */
-.pending-card { overflow: hidden; }
-.pending-list { padding: 10px 20px 16px; display: flex; flex-direction: column; gap: 2px; }
-.pending-item {
-  display: flex; align-items: flex-start; gap: 12px;
-  padding: 10px 0; border-bottom: 1px solid #f5ece8;
-}
-.pending-item:last-child { border-bottom: none; }
-.pending-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--rose); flex-shrink: 0; margin-top: 5px;
-}
-.pending-task { font-size: 13.5px; font-weight: 600; color: var(--text); }
-.pending-range { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.stat-card__top { display: flex; align-items: center; justify-content: space-between; }
+.stat-card__arrow { width: 17px; color: var(--text-dim); }
+.icon-box { display: inline-flex; width: 38px; height: 38px; align-items: center; justify-content: center; border-radius: 10px; flex-shrink: 0; }
+.icon-box svg { width: 19px; height: 19px; stroke-width: 1.8; }
+.icon-box--sage { background: var(--accent-soft); color: var(--accent-hover); }.icon-box--sand { background: #eef1dc; color: #70794b; }.icon-box--stone { background: #edf1e8; color: #64705f; }.icon-box--fern { background: #deebd8; color: #4f7748; }.icon-box--mist { background: #e7efe2; color: #5d7955; }
+.stat-card__body { margin-top: 20px; }
+.stat-card__value { color: var(--text); font-size: 28px; font-weight: 800; line-height: 1; letter-spacing: -.035em; }
+.stat-card__value span { margin-left: 2px; color: var(--text-dim); font-size: 15px; font-weight: 600; }
+.stat-card__label { margin-top: 7px; color: var(--text-muted); font-size: 12px; font-weight: 600; }
+.progress-block { margin-top: auto; padding-top: 17px; }
+.progress-meta { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 7px; color: var(--text-muted); font-size: 11.5px; }
+.progress-meta strong { color: var(--text); font-weight: 700; }
+.progress-track { height: 6px; border-radius: 999px; background: #e9eee7; overflow: hidden; }
+.progress-track > span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--rose), #a8b9a5); transition: width .35s ease; }
+.overview-grid, .details-grid { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.4fr); gap: 16px; align-items: stretch; }
+.details-grid { grid-template-columns: minmax(0, 1.25fr) minmax(300px, .75fr); }
+.details-grid--bottom { grid-template-columns: 1fr 1fr; }
+.panel { min-width: 0; overflow: hidden; }
+.panel__header { display: flex; min-height: 80px; padding: 18px 20px; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--border); }
+.panel__title { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.panel__title div > span { margin-bottom: 3px; font-size: 9px; }
+.panel__title h2 { font-size: 15px; line-height: 1.25; letter-spacing: -.01em; }
+.text-link { display: inline-flex; align-items: center; gap: 5px; padding: 7px; color: var(--text-muted); font-size: 11.5px; font-weight: 650; text-decoration: none; white-space: nowrap; }
+.text-link:hover { color: var(--rose); }.text-link svg { width: 14px; }
+.detail-list { display: grid; padding: 7px 20px 14px; }
+.detail-list > div { display: grid; grid-template-columns: minmax(105px, .8fr) 1.2fr; gap: 12px; padding: 13px 0; border-bottom: 1px solid #edf1eb; }
+.detail-list > div:last-child { border-bottom: 0; }
+.detail-list dt { display: flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 12px; }.detail-list dt svg { width: 15px; color: var(--rose); }
+.detail-list dd { color: var(--text); font-size: 12.5px; font-weight: 650; text-align: right; overflow-wrap: anywhere; }
+.guest-stats { display: grid; grid-template-columns: repeat(4, 1fr); padding: 22px 20px 12px; }
+.guest-stats > div { padding: 5px 12px; border-right: 1px solid var(--border); text-align: center; }.guest-stats > div:last-child { border: 0; }
+.guest-stats strong, .guest-stats span { display: block; }.guest-stats strong { font-size: 24px; letter-spacing: -.03em; }.guest-stats span { margin-top: 5px; color: var(--text-muted); font-size: 10.5px; }
+.guest-progress, .budget-progress { margin: 0 20px 20px; padding-top: 15px; }
+.budget-figures { display: grid; grid-template-columns: repeat(3, 1fr); padding: 22px 20px 8px; }
+.budget-figures > div { min-width: 0; padding: 3px 16px; border-right: 1px solid var(--border); }.budget-figures > div:first-child { padding-left: 0; }.budget-figures > div:last-child { padding-right: 0; border: 0; }
+.budget-figures span, .budget-figures strong { display: block; }.budget-figures span { margin-bottom: 7px; color: var(--text-muted); font-size: 11px; }.budget-figures strong { font-size: 14px; overflow-wrap: anywhere; }
+.kua-list, .category-list, .checklist-list { display: grid; gap: 16px; padding: 20px; }
+.kua-list { gap: 18px; }
+.category-item__meta { display: flex; justify-content: space-between; gap: 12px; margin-bottom: 8px; font-size: 12px; }.category-item__meta strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }.category-item__meta span { color: var(--text-muted); white-space: nowrap; }
+.checklist-list { gap: 0; padding-top: 8px; }
+.checklist-item { display: flex; gap: 11px; padding: 13px 0; border-bottom: 1px solid #edf1eb; }.checklist-item:last-child { border: 0; }
+.checklist-item__marker { color: var(--rose); }.checklist-item__marker svg { width: 15px; }
+.checklist-item strong, .checklist-item span { display: block; }.checklist-item strong { font-size: 12.5px; }.checklist-item span { margin-top: 4px; color: var(--text-muted); font-size: 11px; }
+.empty-state { display: flex; min-height: 180px; padding: 24px; flex-direction: column; align-items: center; justify-content: center; color: var(--text-muted); text-align: center; }.empty-state svg { width: 25px; margin-bottom: 10px; color: var(--rose); }.empty-state strong { color: var(--text); font-size: 13px; }.empty-state span { margin-top: 5px; font-size: 11.5px; }
+@media (max-width: 1100px) { .stats-grid { grid-template-columns: repeat(2, 1fr); }.overview-grid, .details-grid, .details-grid--bottom { grid-template-columns: 1fr; } }
+@media (max-width: 767px) { .dashboard { gap: 22px; }.hero-card { min-height: auto; padding: 26px 20px; flex-direction: column; align-items: stretch; }.quick-actions { width: 100%; grid-template-columns: repeat(3, 1fr); }.quick-action { justify-content: center; padding-inline: 8px; }.quick-action span { font-size: 11px; }.section-heading { align-items: start; flex-direction: column; gap: 4px; }.stats-grid { gap: 10px; }.stat-card { min-height: 190px; padding: 16px; }.stat-card__value { font-size: 24px; }.guest-stats { grid-template-columns: repeat(2, 1fr); gap: 12px; }.guest-stats > div { border: 0; }.budget-figures { grid-template-columns: 1fr; gap: 14px; }.budget-figures > div, .budget-figures > div:first-child, .budget-figures > div:last-child { padding: 0 0 14px; border: 0; border-bottom: 1px solid var(--border); }.budget-figures > div:last-child { border: 0; padding-bottom: 0; } }
+@media (max-width: 430px) { .quick-actions { grid-template-columns: 1fr; }.stats-grid { grid-template-columns: 1fr; }.stat-card { min-height: 182px; }.panel__header { align-items: flex-start; }.detail-list > div { grid-template-columns: 1fr; gap: 7px; }.detail-list dd { text-align: left; padding-left: 23px; } }
 </style>

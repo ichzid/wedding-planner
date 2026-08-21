@@ -46,7 +46,7 @@ class BudgetController extends Controller
             'estimasi_budget' => 'required|integer|min:0',
             'dp'              => 'nullable|integer|min:0',
             'pelunasan'       => 'nullable|integer|min:0',
-            'sumber_dana'     => 'required|in:cpp,cpw',
+            'sumber_dana'     => 'required|in:cpp,cpw,bersama',
             'status'          => 'required|in:belum,dp_terbayar,lunas',
             'catatan'         => 'nullable|string',
         ]);
@@ -73,7 +73,7 @@ class BudgetController extends Controller
             'estimasi_budget' => 'required|integer|min:0',
             'dp'              => 'nullable|integer|min:0',
             'pelunasan'       => 'nullable|integer|min:0',
-            'sumber_dana'     => 'required|in:cpp,cpw',
+            'sumber_dana'     => 'required|in:cpp,cpw,bersama',
             'status'          => 'required|in:belum,dp_terbayar,lunas',
             'catatan'         => 'nullable|string',
         ]);

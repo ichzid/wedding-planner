@@ -1,646 +1,110 @@
 <template>
   <AppLayout>
-    <Head title="Seserahan" />
+    <div class="seserahan-page">
+      <header class="hero-card">
+        <div><span class="eyebrow">Hadiah penuh makna</span><h1>Daftar Seserahan</h1><p>Susun kebutuhan seserahan dan pantau pembeliannya dalam satu tempat.</p></div>
+        <button class="primary-action" @click="openCreate"><Plus aria-hidden="true" />Tambah Seserahan</button>
+      </header>
 
-    <!-- Header -->
-    <div class="page-header" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
-      <div>
-        <h1 class="page-title">List Seserahan</h1>
-        <p class="page-sub">{{ sudahBeli }}/{{ totalItem }} item sudah dibeli · {{ progressPct }}%</p>
-      </div>
-      <button class="btn btn--primary" @click="openCreate">
-        <i class="fa-solid fa-plus fa-xs"></i> Tambah
-      </button>
-    </div>
+      <section class="summary-grid" aria-label="Ringkasan seserahan">
+        <article class="summary-card"><span class="summary-icon"><Gift /></span><div><p class="summary-label">Total Item</p><p class="summary-value">{{ totalItem }}</p><p class="summary-sub">{{ sudahBeli }} dibeli · {{ belumBeli }} belum</p></div></article>
+        <article class="summary-card"><span class="summary-icon"><CircleCheckBig /></span><div><p class="summary-label">Progress</p><p class="summary-value">{{ progressPct }}%</p><div class="progress-track"><span :style="{ width: progressPct + '%' }"></span></div></div></article>
+        <article class="summary-card"><span class="summary-icon summary-icon--money"><WalletCards /></span><div><p class="summary-label">Total Harga</p><p class="summary-value">{{ formatRp(totalHarga) }}</p><p class="summary-sub">Nilai seluruh kebutuhan</p></div></article>
+      </section>
 
-    <!-- Summary Cards -->
-    <div class="summary-grid">
-      <div class="card summary-card">
-        <p class="summary-card__label">Total Item</p>
-        <p class="summary-card__value">{{ totalItem }}</p>
-        <p class="summary-card__sub">{{ sudahBeli }} sudah dibeli · {{ belumBeli }} belum</p>
-      </div>
-      <div class="card summary-card">
-        <p class="summary-card__label">Progress</p>
-        <div class="prog-track mt-2">
-          <div class="prog-fill" :style="{ width: progressPct + '%' }"></div>
-        </div>
-        <p class="summary-card__sub mt-2">{{ progressPct }}% selesai</p>
-      </div>
-      <div class="card summary-card">
-        <p class="summary-card__label">Total Harga</p>
-        <p class="summary-card__value">{{ formatRp(totalHarga) }}</p>
-      </div>
-    </div>
-
-    <!-- Toolbar -->
-    <div class="toolbar">
-      <div class="toolbar__search">
-        <i class="fa-solid fa-magnifying-glass search-icon"></i>
-        <input v-model="searchQuery" type="text" placeholder="Cari item atau kategori..." class="form-input search-input" />
-      </div>
-      <select v-model="filterStatus" class="form-input toolbar__select">
-        <option value="">Semua Status</option>
-        <option value="sudah_dibeli">Sudah Dibeli</option>
-        <option value="belum">Belum Dibeli</option>
-      </select>
-      <button v-if="filterStatus || searchQuery" class="btn btn--outline btn--sm" @click="resetFilters">
-        <i class="fa-solid fa-xmark"></i> Reset
-      </button>
-      <button class="btn btn--outline" @click="exportToExcel">
-        <i class="fa-solid fa-file-excel" style="color: #2e7d32;"></i>
-        Export Excel
-      </button>
-    </div>
-
-    <!-- Table -->
-    <div class="card" style="overflow:hidden">
-      <div style="overflow-x:auto">
-        <table class="tbl">
-          <thead>
-            <tr>
-              <th style="width:36px">#</th>
-              <th>Nama Item & Kategori</th>
-              <th>Untuk</th>
-              <th class="text-right">Qty</th>
-              <th class="text-right">Harga Satuan</th>
-              <th class="text-right">Total</th>
-              <th>Status</th>
-              <th class="text-center" style="width:80px">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="(s, index) in filteredItems"
-              :key="s.id"
-              class="draggable-row"
-              :class="{ 'is-dragging': draggedId === s.id, 'is-drop-target': dragOverId === s.id, 'is-drop-before': dropPlacement(s.id) === 'before', 'is-drop-after': dropPlacement(s.id) === 'after', 'is-drag-disabled': !canDragRows }"
-              :draggable="canDragRows"
-              @dragstart="startDrag(s, index, $event)"
-              @dragover.prevent="setDragOver(s, index)"
-              @drop="dropRow(index)"
-              @dragend="endDrag"
-              @touchstart="handleTouchStart"
-              @touchmove="handleTouchMove"
-              @touchend="handleTouchEnd"
-            >
-              <td class="mono-text drag-cell"><i class="fa-solid fa-grip-vertical"></i> {{ s.no }}</td>
-              <td>
-                <p class="item-name">{{ s.nama_item }}</p>
-                <p class="item-sub">{{ s.kategori }}</p>
-              </td>
-              <td>
-                <span class="chip" :class="untukChipClass(s.untuk)">
-                  {{ untukLabel(s.untuk) }}
-                </span>
-              </td>
-              <td class="text-right fw-600">{{ s.qty }} {{ s.satuan }}</td>
-              <td class="text-right">{{ formatRp(s.harga) }}</td>
-              <td class="text-right fw-600 text-dark">{{ formatRp(s.qty * s.harga) }}</td>
-              <td>
-                <span class="chip" :class="s.status === 'sudah_dibeli' ? 'chip--ok' : 'chip--danger'">
-                  {{ s.status === 'sudah_dibeli' ? 'Sudah Dibeli' : 'Belum Dibeli' }}
-                </span>
-              </td>
-              <td>
-                <div style="display:flex;align-items:center;justify-content:center;gap:2px">
-                  <button class="btn btn--ghost btn--icon" title="Copy" @click="openCopy(s)" :id="'copy-seserahan-'+s.id">
-                    <i class="fa-solid fa-copy action-icon action-icon--copy"></i>
-                  </button>
-                  <button class="btn btn--ghost btn--icon" title="Edit" @click="openEdit(s)" :id="'edit-seserahan-'+s.id">
-                    <i class="fa-solid fa-pen-to-square action-icon action-icon--edit"></i>
-                  </button>
-                  <button class="btn btn--danger-ghost btn--icon" title="Hapus" @click="confirmDelete(s)" :id="'del-seserahan-'+s.id">
-                    <i class="fa-solid fa-trash action-icon action-icon--delete"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr v-if="!filteredItems.length">
-              <td colspan="8">
-                <div class="empty-state">
-                  <i class="fa-solid fa-gift empty-state__icon"></i>
-                  <p class="empty-state__text">Belum ada data seserahan. Yuk, mulai catat seserahan pernikahanmu!</p>
-                  <button class="btn btn--primary" @click="openCreate">
-                    <i class="fa-solid fa-plus fa-xs"></i> Tambah Seserahan Pertama
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-          <tfoot v-if="filteredItems.length">
-            <tr class="tfoot-row">
-              <td colspan="5" class="tfoot-label">Total ({{ filteredItems.length }} item)</td>
-              <td class="text-right fw-700 text-dark">{{ formatRp(filteredTotalHarga) }}</td>
-              <td colspan="2"></td>
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-    </div>
-
-    <!-- Modal -->
-    <Teleport to="body">
-      <div v-if="showModal" class="modal-backdrop">
-        <div class="modal-box">
-          <div class="modal-header">
-            <h3 class="modal-title">{{ editItem ? 'Edit Seserahan' : (copyItem ? 'Copy Seserahan' : 'Tambah Seserahan') }}</h3>
-            <button class="btn btn--icon btn--ghost" @click="closeModal">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
+      <section class="data-panel">
+        <section class="toolbar" aria-label="Pencarian dan filter">
+          <div class="toolbar-top">
+            <div class="search-wrap"><Search aria-hidden="true" /><input v-model="searchQuery" class="toolbar-control" placeholder="Cari item atau kategori..."></div>
+            <button class="filter-toggle" :class="{ active: mobileFiltersOpen || filterKategori || filterUntuk || filterStatus }" :aria-expanded="mobileFiltersOpen" aria-controls="seserahan-filters" aria-label="Tampilkan filter seserahan" @click="mobileFiltersOpen = !mobileFiltersOpen"><ListFilter aria-hidden="true" /><span v-if="filterKategori || filterUntuk || filterStatus" /></button>
           </div>
-          <form @submit.prevent="save" class="modal-body">
-            <div>
-              <label class="form-label">Nama Item *</label>
-              <input v-model="form.nama_item" type="text" required class="form-input" placeholder="Cincin Emas 24K">
-              <p v-if="errors.nama_item" class="form-error">{{ errors.nama_item }}</p>
-            </div>
-            <div class="form-row-2" style="margin-top:var(--space-md)">
-              <div>
-                <label class="form-label">Kategori *</label>
-                <select v-model="form.kategori" required class="form-input">
-                  <option value="" disabled selected hidden>Pilih Kategori</option>
-                  <option v-for="kat in kategoriOptions" :key="kat" :value="kat">{{ kat }}</option>
-                </select>
-                <p v-if="errors.kategori" class="form-error">{{ errors.kategori }}</p>
-              </div>
-              <div>
-                <label class="form-label">Untuk *</label>
-                <select v-model="form.untuk" required class="form-input">
-                  <option value="" disabled selected hidden>Pilih Tujuan</option>
-                  <option value="cpp">Mempelai Pria</option>
-                  <option value="cpw">Mempelai Wanita</option>
-                  <option value="kedua">Kedua Mempelai</option>
-                </select>
-                <p v-if="errors.untuk" class="form-error">{{ errors.untuk }}</p>
-              </div>
-            </div>
-            <div class="form-row-2" style="margin-top:var(--space-md)">
-              <div>
-                <label class="form-label">Qty *</label>
-                <input v-model="form.qty" type="number" min="1" required class="form-input">
-                <p v-if="errors.qty" class="form-error">{{ errors.qty }}</p>
-              </div>
-              <div>
-                <label class="form-label">Satuan</label>
-                <input v-model="form.satuan" type="text" class="form-input" placeholder="set, buah, dll">
-                <p v-if="errors.satuan" class="form-error">{{ errors.satuan }}</p>
-              </div>
-            </div>
-            <div class="form-row-2" style="margin-top:var(--space-md)">
-              <div>
-                <label class="form-label">Harga Satuan (Rp) *</label>
-                <input v-model="form.harga" type="number" min="0" required class="form-input">
-                <p v-if="errors.harga" class="form-error">{{ errors.harga }}</p>
-              </div>
-              <div>
-                <label class="form-label">Status *</label>
-                <select v-model="form.status" required class="form-input">
-                  <option value="belum">Belum Dibeli</option>
-                  <option value="sudah_dibeli">Sudah Dibeli</option>
-                </select>
-                <p v-if="errors.status" class="form-error">{{ errors.status }}</p>
-              </div>
-            </div>
-            <div class="modal-footer" style="margin-top:var(--space-lg);padding:0">
-              <button type="button" class="btn btn--outline" style="flex:1;justify-content:center" @click="closeModal">Batal</button>
-              <button type="submit" class="btn btn--primary" style="flex:1;justify-content:center" :disabled="saving">
-                <i v-if="saving" class="fa-solid fa-spinner fa-spin fa-xs"></i>
-                {{ saving ? 'Menyimpan...' : 'Simpan' }}
-              </button>
-            </div>
-          </form>
+          <div id="seserahan-filters" class="toolbar-filters" :class="{ open: mobileFiltersOpen }">
+            <label class="select-wrap"><select v-model="filterKategori" class="toolbar-control" aria-label="Filter kategori"><option value="">Semua Kategori</option><option v-for="k in kategoriOptions" :key="k" :value="k">{{ k }}</option></select><ChevronDown aria-hidden="true" /></label>
+            <label class="select-wrap"><select v-model="filterUntuk" class="toolbar-control" aria-label="Filter peruntukan"><option value="">Semua Peruntukan</option><option value="cpp">Calon Pengantin Pria</option><option value="cpw">Calon Pengantin Wanita</option><option value="kedua">Kedua Calon Pengantin</option></select><ChevronDown aria-hidden="true" /></label>
+            <label class="select-wrap"><select v-model="filterStatus" class="toolbar-control" aria-label="Filter status"><option value="">Semua Status</option><option value="sudah_dibeli">Sudah Dibeli</option><option value="belum">Belum Dibeli</option></select><ChevronDown /></label>
+            <button v-if="hasFilters" class="secondary-action" @click="resetFilters"><X />Reset</button>
+            <button class="secondary-action export-action" @click="exportToExcel"><FileSpreadsheet />Ekspor Excel</button>
+          </div>
+        </section>
+
+        <div class="desktop-table">
+          <table class="tbl">
+            <thead><tr><th>#</th><th>Item & Kategori</th><th>Untuk</th><th class="right">Qty</th><th class="right">Harga Satuan</th><th class="right">Total</th><th>Status</th><th class="center">Aksi</th></tr></thead>
+            <tbody>
+              <tr v-for="(s,index) in filteredItems" :key="s.id" class="draggable-row" :class="rowClasses(s)" :draggable="canDragRows" @dragstart="startDrag(s,index,$event)" @dragover.prevent="setDragOver(s,index)" @drop="dropRow(index)" @dragend="endDrag">
+                <td class="drag-cell" @touchstart.stop="handleTouchStart($event,s,index)" @touchmove.stop="handleTouchMove" @touchend.stop="handleTouchEnd" @touchcancel.stop="endDrag"><GripVertical /> {{ s.no }}</td>
+                <td><strong>{{ s.nama_item }}</strong><small>{{ s.kategori }}</small></td>
+                <td><span class="chip source-chip" :class="untukChipClass(s.untuk)"><Mars v-if="s.untuk === 'cpp' || s.untuk === 'kedua'" aria-hidden="true" /><Venus v-if="s.untuk === 'cpw' || s.untuk === 'kedua'" aria-hidden="true" />{{ untukLabel(s.untuk) }}</span></td>
+                <td class="right">{{ s.qty }} {{ s.satuan }}</td><td class="right">{{ formatRp(s.harga) }}</td><td class="right strong">{{ formatRp(s.qty*s.harga) }}</td>
+                <td><span class="chip" :class="s.status === 'sudah_dibeli' ? 'chip--ok' : 'chip--danger'">{{ statusLabel(s.status) }}</span></td>
+                <td><div class="actions"><button class="icon-action" data-tooltip="Salin" :aria-label="`Salin seserahan ${s.nama_item}`" @click="openCopy(s)"><Copy /></button><button class="icon-action" data-tooltip="Edit" :aria-label="`Edit seserahan ${s.nama_item}`" @click="openEdit(s)"><Pencil /></button><button class="icon-action danger" data-tooltip="Hapus" :aria-label="`Hapus seserahan ${s.nama_item}`" @click="confirmDelete(s)"><Trash2 /></button></div></td>
+              </tr>
+            </tbody>
+            <tfoot v-if="filteredItems.length"><tr><td colspan="5">Total ({{ filteredItems.length }} item)</td><td class="right strong">{{ formatRp(filteredTotalHarga) }}</td><td colspan="2"></td></tr></tfoot>
+          </table>
+          <EmptyState v-if="!filteredItems.length" :filtered="hasFilters" @create="openCreate" @reset="resetFilters" />
         </div>
-      </div>
-    </Teleport>
+
+        <section class="mobile-records" aria-label="Daftar seserahan">
+          <article v-for="(s,index) in filteredItems" :key="s.id" class="record-card" :class="s.status === 'sudah_dibeli' ? 'bought' : 'pending'">
+            <div class="record-head"><div><span class="category">{{ s.kategori }}</span><h2>{{ s.nama_item }}</h2></div><span class="chip" :class="s.status === 'sudah_dibeli' ? 'chip--ok' : 'chip--danger'">{{ statusLabel(s.status) }}</span></div>
+            <dl><div><dt>Peruntukan</dt><dd class="source-label"><Mars v-if="s.untuk === 'cpp' || s.untuk === 'kedua'" aria-hidden="true" /><Venus v-if="s.untuk === 'cpw' || s.untuk === 'kedua'" aria-hidden="true" />{{ untukLabel(s.untuk) }}</dd></div><div><dt>Jumlah</dt><dd>{{ s.qty }} {{ s.satuan }}</dd></div><div><dt>Total</dt><dd>{{ formatRp(s.qty*s.harga) }}</dd></div></dl>
+            <div class="record-footer"><button class="drag-handle" :disabled="!canDragRows" aria-label="Geser urutan" @touchstart.stop="handleTouchStart($event,s,index)" @touchmove.stop="handleTouchMove" @touchend.stop="handleTouchEnd" @touchcancel.stop="endDrag"><GripVertical />Urutan {{ s.no }}</button><div class="actions"><button class="icon-action" aria-label="Salin seserahan" @click="openCopy(s)"><Copy /></button><button class="icon-action" aria-label="Edit seserahan" @click="openEdit(s)"><Pencil /></button><button class="icon-action danger" aria-label="Hapus seserahan" @click="confirmDelete(s)"><Trash2 /></button></div></div>
+          </article>
+          <EmptyState v-if="!filteredItems.length" :filtered="hasFilters" @create="openCreate" @reset="resetFilters" />
+        </section>
+      </section>
+    </div>
+
+    <Teleport to="body"><div v-if="showModal" class="drawer-backdrop" @click.self="closeModal"><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="drawer-title"><div class="drawer-handle"></div><header class="drawer-header"><div><span class="eyebrow">Daftar seserahan</span><h3 id="drawer-title" class="drawer-title">{{ editItem ? 'Edit Seserahan' : copyItem ? 'Salin Seserahan' : 'Tambah Seserahan' }}</h3></div><button class="icon-action" aria-label="Tutup" @click="closeModal"><X /></button></header>
+      <form class="drawer-body" @submit.prevent="save">
+        <div class="field"><label for="item-name">Nama Item <span>*</span></label><div class="field-control"><TextCursorInput /><input id="item-name" v-model="form.nama_item" required placeholder="Contoh: Cincin emas"></div></div>
+        <div class="form-row"><div class="field"><label for="category">Kategori <span>*</span></label><div class="field-control"><Tags /><select id="category" v-model="form.kategori" required><option value="">Pilih kategori</option><option v-for="k in kategoriOptions" :key="k">{{ k }}</option></select><ChevronDown /></div></div><div class="field"><label for="recipient">Peruntukan <span>*</span></label><div class="field-control"><Users /><select id="recipient" v-model="form.untuk" required><option value="">Pilih peruntukan</option><option value="cpp">Calon Pengantin Pria</option><option value="cpw">Calon Pengantin Wanita</option><option value="kedua">Kedua Calon Pengantin</option></select><ChevronDown /></div></div></div>
+        <div class="form-row"><div class="field"><label for="qty">Qty <span>*</span></label><div class="field-control"><Hash /><input id="qty" v-model="form.qty" type="number" min="1" required></div></div><div class="field"><label for="unit">Satuan</label><div class="field-control"><Package /><input id="unit" v-model="form.satuan" placeholder="buah, set, dll"></div></div></div>
+        <div class="form-row"><div class="field"><label for="price">Harga Satuan <span>*</span></label><div class="field-control"><BadgeDollarSign /><input id="price" v-model="form.harga" type="number" min="0" required></div></div><div class="field"><label for="status">Status <span>*</span></label><div class="field-control"><CircleGauge /><select id="status" v-model="form.status" required><option value="belum">Belum Dibeli</option><option value="sudah_dibeli">Sudah Dibeli</option></select><ChevronDown /></div></div></div>
+        <footer class="drawer-footer"><button type="button" class="secondary-action" @click="closeModal">Batal</button><button type="submit" class="primary-action" :disabled="saving"><LoaderCircle v-if="saving" class="spinner" />{{ saving ? 'Menyimpan...' : 'Simpan Seserahan' }}</button></footer>
+      </form></aside></div></Teleport>
   </AppLayout>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
-import { Head, router } from '@inertiajs/vue3';
+import { computed, defineComponent, h, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { router } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
 import AppLayout from '@/Layouts/AppLayout.vue';
+import { BadgeDollarSign, ChevronDown, CircleCheckBig, CircleGauge, Copy, FileSpreadsheet, Gift, GripVertical, Hash, ListFilter, LoaderCircle, Mars, Package, Pencil, Plus, Search, Tags, TextCursorInput, Trash2, Users, Venus, WalletCards, X } from '@lucide/vue';
 import { showToast, confirmDeleteDialog } from '@/utils.js';
 import * as XLSX from 'xlsx';
 
-const props = defineProps({
-  items: Array,
-  kategoriOptions: Array,
-  totalItem: Number,
-  sudahBeli: Number,
-  belumBeli: Number,
-  totalHarga: Number,
-});
-
-const localItems = ref([...props.items]);
-const searchQuery  = ref('');
-const filterStatus = ref('');
-const draggedIndex = ref(null);
-const draggedId = ref(null);
-const dragOverIndex = ref(null);
-const dragOverId = ref(null);
-const showModal = ref(false);
-const editItem  = ref(null);
-const copyItem  = ref(null);
-const saving    = ref(false);
-const errors    = ref({});
-
-const defaultForm = () => ({
-  kategori:       '',
-  nama_item:      '',
-  untuk:          '',
-  qty:            1,
-  satuan:         'buah',
-  harga:          0,
-  status:         'belum',
-});
-const form = ref(defaultForm());
-
-const progressPct = computed(() => {
-  if (!props.totalItem) return 0;
-  return Math.round(props.sudahBeli / props.totalItem * 100);
-});
-
-watch(() => props.items, (items) => {
-  localItems.value = [...items];
-});
-
-const filteredItems = computed(() => {
-  let list = [...localItems.value];
-  if (searchQuery.value) {
-    const q = searchQuery.value.toLowerCase();
-    list = list.filter(s =>
-      s.nama_item?.toLowerCase().includes(q) ||
-      s.kategori?.toLowerCase().includes(q)
-    );
-  }
-  if (filterStatus.value) {
-    list = list.filter(s => s.status === filterStatus.value);
-  }
-  return list;
-});
-
-const canDragRows = computed(() => !searchQuery.value && !filterStatus.value);
-const filteredTotalHarga = computed(() => filteredItems.value.reduce((sum, i) => sum + (i.qty * i.harga), 0));
-
-function formatRp(n) {
-  return 'Rp' + Number(n || 0).toLocaleString('id-ID');
-}
-
-function exportToExcel() {
-  if (filteredItems.value.length === 0) {
-    showToast('Tidak ada data untuk diexport');
-    return;
-  }
-
-  const dateNow = new Date();
-  const dateStr = dateNow.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-
-  const headers = ['No', 'Kategori', 'Nama Item', 'Untuk', 'Qty', 'Satuan', 'Harga Satuan', 'Total', 'Status'];
-  
-  const dataRows = filteredItems.value.map((i, index) => [
-    i.no || index + 1,
-    i.kategori || '',
-    i.nama_item || '',
-    untukLabel(i.untuk),
-    i.qty || 0,
-    i.satuan || '',
-    i.harga || 0,
-    (i.qty || 0) * (i.harga || 0),
-    i.status === 'sudah_dibeli' ? 'Sudah Dibeli' : 'Belum Dibeli'
-  ]);
-  
-  dataRows.push([
-    '',
-    'TOTAL',
-    '',
-    '',
-    '',
-    '',
-    '',
-    filteredTotalHarga.value,
-    ''
-  ]);
-
-  const finalData = [
-    ['DAFTAR LIST SESERAHAN'],
-    [`Dicetak pada: ${dateStr}`],
-    [], // empty row
-    headers,
-    ...dataRows
-  ];
-
-  const ws = XLSX.utils.aoa_to_sheet(finalData);
-  
-  // Merge cells for title
-  ws['!merges'] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 8 } }, // Merge A1:I1
-    { s: { r: 1, c: 0 }, e: { r: 1, c: 8 } }  // Merge A2:I2
-  ];
-
-  // Set column widths
-  ws['!cols'] = [
-    { wch: 5 },  // No
-    { wch: 20 }, // Kategori
-    { wch: 30 }, // Nama Item
-    { wch: 20 }, // Untuk
-    { wch: 10 }, // Qty
-    { wch: 15 }, // Satuan
-    { wch: 20 }, // Harga Satuan
-    { wch: 20 }, // Total
-    { wch: 20 }  // Status
-  ];
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "List Seserahan");
-  
-  XLSX.writeFile(wb, `List_Seserahan_${dateNow.toISOString().split('T')[0]}.xlsx`);
-  showToast('Data berhasil diexport ke Excel');
-}
-
-function resetFilters() {
-  searchQuery.value  = '';
-  filterStatus.value = '';
-}
-
-function untukLabel(untuk) {
-  if (untuk === 'cpw') return 'Mempelai Wanita';
-  if (untuk === 'cpp') return 'Mempelai Pria';
-  if (untuk === 'kedua') return 'Kedua Mempelai';
-  return '-';
-}
-
-function untukChipClass(untuk) {
-  if (untuk === 'cpw') return 'chip--cpw';
-  if (untuk === 'cpp') return 'chip--cpp';
-  if (untuk === 'kedua') return 'chip--ok'; // Optional: Use a specific class or green color
-  return 'chip--neutral';
-}
-
-function seserahanToForm(s) {
-  return {
-    kategori:  s.kategori,
-    nama_item: s.nama_item,
-    untuk:     s.untuk,
-    qty:       s.qty,
-    satuan:    s.satuan || '',
-    harga:     s.harga,
-    status:    s.status,
-  };
-}
-
-function openCreate() {
-  editItem.value   = null;
-  copyItem.value   = null;
-  form.value       = defaultForm();
-  errors.value     = {};
-  showModal.value  = true;
-}
-
-function openCopy(s) {
-  editItem.value   = null;
-  copyItem.value   = s;
-  form.value       = {
-    kategori:  s.kategori,
-    nama_item: s.nama_item,
-    untuk:     s.untuk,
-    qty:       s.qty,
-    satuan:    s.satuan || '',
-    harga:     s.harga,
-    status:    s.status,
-  };
-  errors.value     = {};
-  showModal.value  = true;
-}
-
-function openEdit(s) {
-  editItem.value = s;
-  copyItem.value = null;
-  form.value = {
-    kategori:  s.kategori,
-    nama_item: s.nama_item,
-    untuk:     s.untuk,
-    qty:       s.qty,
-    satuan:    s.satuan || '',
-    harga:     s.harga,
-    status:    s.status,
-  };
-  errors.value   = {};
-  showModal.value = true;
-}
-
-function closeModal() {
-  showModal.value = false;
-  editItem.value = null;
-  copyItem.value = null;
-}
-
-async function save() {
-  saving.value = true;
-  errors.value = {};
-  const payload = {
-    ...form.value,
-    qty:   Number(form.value.qty) || 1,
-    harga: Number(form.value.harga) || 0,
-  };
-  const url = editItem.value
-    ? route('seserahan.update', editItem.value.id)
-    : route('seserahan.store');
-  const method = editItem.value ? 'patch' : 'post';
-  router[method](url, payload, {
-    preserveScroll: true,
-    onSuccess: () => {
-      showToast(editItem.value ? 'Seserahan berhasil diupdate.' : (copyItem.value ? 'Copy seserahan berhasil ditambahkan.' : 'Seserahan berhasil ditambahkan.'));
-      closeModal();
-      saving.value = false;
-    },
-    onError: (errs) => {
-      errors.value = errs;
-      saving.value = false;
-    },
-  });
-}
-
-function startDrag(item, index, event) {
-  if (!canDragRows.value) return;
-  draggedIndex.value = index;
-  draggedId.value = item.id;
-  if(event && event.dataTransfer) {
-      event.dataTransfer.effectAllowed = 'move';
-  }
-}
-
-function handleTouchStart(event) {
-  if (!canDragRows.value) return;
-  const targetEl = event.target;
-  if (!targetEl?.closest('.drag-cell')) return;
-
-  const targetRow = targetEl.closest('.draggable-row');
-  if (targetRow) {
-      const b_index = Array.from(targetRow.parentNode.children).indexOf(targetRow);
-      startDrag(filteredItems.value[b_index], b_index, null);
-  }
-}
-
-function handleTouchMove(event) {
-    if(!canDragRows.value || draggedId.value === null) return;
-    event.preventDefault(); // Prevent scrolling while dragging
-    const touch = event.touches[0];
-    const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
-    const targetRow = targetEl?.closest('.draggable-row');
-    if (targetRow) {
-        const index = Array.from(targetRow.parentNode.children).indexOf(targetRow);
-        const item = filteredItems.value[index];
-        setDragOver(item, index);
-    }
-}
-
-function setDragOver(item, index) {
-  if (!canDragRows.value || draggedId.value === item.id) return;
-  dragOverId.value = item.id;
-  dragOverIndex.value = index;
-}
-
-function dropPlacement(id) {
-  if (dragOverId.value !== id || draggedIndex.value === null || dragOverIndex.value === null) return null;
-  return dragOverIndex.value > draggedIndex.value ? 'after' : 'before';
-}
-
-function dropRow(targetIndex) {
-  if (!canDragRows.value || draggedIndex.value === null || draggedIndex.value === targetIndex) {
-    endDrag();
-    return;
-  }
-
-  const reordered = [...localItems.value];
-  const [moved] = reordered.splice(draggedIndex.value, 1);
-  reordered.splice(targetIndex, 0, moved);
-  localItems.value = reordered.map((item, index) => ({ ...item, no: index + 1 }));
-
-  router.patch(route('seserahan.reorder'), {
-    ids: localItems.value.map((item) => item.id),
-  }, {
-    preserveScroll: true,
-    onSuccess: () => showToast('Urutan seserahan berhasil disimpan.'),
-    onError: () => {
-      localItems.value = [...props.items];
-      showToast('Urutan seserahan gagal disimpan.');
-    },
-  });
-
-  endDrag();
-}
-
-function handleTouchEnd(event) {
-    if (draggedId.value !== null && dragOverIndex.value !== null) {
-        dropRow(dragOverIndex.value);
-    } else {
-        endDrag();
-    }
-}
-
-function endDrag() {
-  draggedIndex.value = null;
-  draggedId.value = null;
-  dragOverIndex.value = null;
-  dragOverId.value = null;
-}
-
-function confirmDelete(s) {
-  confirmDeleteDialog(() => {
-    router.delete(route('seserahan.destroy', s.id), {
-      preserveScroll: true,
-      onSuccess: () => showToast('Seserahan berhasil dihapus.'),
-    });
-  });
-}
+const props=defineProps({items:Array,kategoriOptions:Array,totalItem:Number,sudahBeli:Number,belumBeli:Number,totalHarga:Number});
+const localItems=ref([...props.items]), searchQuery=ref(''), filterKategori=ref(''), filterUntuk=ref(''), filterStatus=ref(''), mobileFiltersOpen=ref(false);
+const showModal=ref(false), editItem=ref(null), copyItem=ref(null), saving=ref(false), draggedIndex=ref(null), draggedId=ref(null), dragOverIndex=ref(null), dragOverId=ref(null);
+const defaultForm=()=>({kategori:'',nama_item:'',untuk:'',qty:1,satuan:'buah',harga:0,status:'belum'}), form=ref(defaultForm());
+watch(()=>props.items,v=>localItems.value=[...v]); watch(showModal,v=>document.body.style.overflow=v?'hidden':'');
+onMounted(()=>window.addEventListener('keydown',handleKey)); onBeforeUnmount(()=>{window.removeEventListener('keydown',handleKey);document.body.style.overflow=''}); function handleKey(e){if(e.key==='Escape'&&showModal.value)closeModal()}
+const progressPct=computed(()=>props.totalItem?Math.round(props.sudahBeli/props.totalItem*100):0);
+const hasFilters=computed(()=>Boolean(searchQuery.value||filterKategori.value||filterUntuk.value||filterStatus.value));
+const filteredItems=computed(()=>localItems.value.filter(s=>(!searchQuery.value||s.nama_item?.toLowerCase().includes(searchQuery.value.toLowerCase())||s.kategori?.toLowerCase().includes(searchQuery.value.toLowerCase()))&&(!filterKategori.value||s.kategori===filterKategori.value)&&(!filterUntuk.value||s.untuk===filterUntuk.value)&&(!filterStatus.value||s.status===filterStatus.value)));
+const canDragRows=computed(()=>!hasFilters.value), filteredTotalHarga=computed(()=>filteredItems.value.reduce((n,s)=>n+(s.qty*s.harga),0));
+const formatRp=n=>'Rp'+Number(n||0).toLocaleString('id-ID'); const statusLabel=s=>s==='sudah_dibeli'?'Sudah Dibeli':'Belum Dibeli';
+function untukLabel(v){return {cpw:'CPW',cpp:'CPP',kedua:'CPP & CPW'}[v]||'-'} function untukChipClass(v){return v==='cpw'?'chip--cpw':v==='cpp'?'chip--cpp':v==='kedua'?'chip--ok':'chip--neutral'}
+function resetFilters(){searchQuery.value='';filterKategori.value='';filterUntuk.value='';filterStatus.value=''}
+function itemForm(s){return {kategori:s.kategori,nama_item:s.nama_item,untuk:s.untuk,qty:s.qty,satuan:s.satuan||'',harga:s.harga,status:s.status}}
+function openCreate(){editItem.value=null;copyItem.value=null;form.value=defaultForm();showModal.value=true} function openCopy(s){editItem.value=null;copyItem.value=s;form.value=itemForm(s);showModal.value=true} function openEdit(s){editItem.value=s;copyItem.value=null;form.value=itemForm(s);showModal.value=true} function closeModal(){showModal.value=false;editItem.value=null;copyItem.value=null}
+function save(){saving.value=true;const editing=editItem.value;router[editing?'patch':'post'](editing?route('seserahan.update',editing.id):route('seserahan.store'),{...form.value,qty:Number(form.value.qty)||1,harga:Number(form.value.harga)||0},{preserveScroll:true,onSuccess:()=>{showToast(editing?'Seserahan berhasil diperbarui.':copyItem.value?'Salinan seserahan berhasil ditambahkan.':'Seserahan berhasil ditambahkan.');closeModal();saving.value=false},onError:()=>saving.value=false,onFinish:()=>saving.value=false})}
+function confirmDelete(s){confirmDeleteDialog(()=>router.delete(route('seserahan.destroy',s.id),{preserveScroll:true,onSuccess:()=>showToast('Seserahan berhasil dihapus.')}),{title:'Hapus item seserahan ini?',description:`Item “${s.nama_item}” akan dihapus permanen dari daftar seserahan.`})}
+function rowClasses(s){return {'is-dragging':draggedId.value===s.id,'is-drop-target':dragOverId.value===s.id,'is-drop-before':dropPlacement(s.id)==='before','is-drop-after':dropPlacement(s.id)==='after','is-drag-disabled':!canDragRows.value}}
+function startDrag(s,index,e){if(!canDragRows.value)return;draggedIndex.value=index;draggedId.value=s.id;if(e?.dataTransfer)e.dataTransfer.effectAllowed='move'}
+function handleTouchStart(_,s,index){if(!canDragRows.value)return;startDrag(s,index,null)} function handleTouchMove(e){if(draggedId.value===null)return;e.preventDefault();const row=document.elementFromPoint(e.touches[0].clientX,e.touches[0].clientY)?.closest('.record-card, tr.draggable-row');if(!row)return;const records=[...document.querySelectorAll('.mobile-records .record-card')];const index=records.includes(row)?records.indexOf(row):[...row.parentNode.children].indexOf(row);const item=filteredItems.value[index];if(item)setDragOver(item,index)} function handleTouchEnd(){dragOverIndex.value!==null?dropRow(dragOverIndex.value):endDrag()}
+function setDragOver(s,index){if(canDragRows.value&&draggedId.value!==s.id){dragOverId.value=s.id;dragOverIndex.value=index}} function dropPlacement(id){if(dragOverId.value!==id)return null;return dragOverIndex.value>draggedIndex.value?'after':'before'}
+function dropRow(index){if(!canDragRows.value||draggedIndex.value===null||index===draggedIndex.value){endDrag();return}const list=[...localItems.value],[moved]=list.splice(draggedIndex.value,1);list.splice(index,0,moved);localItems.value=list.map((s,i)=>({...s,no:i+1}));router.patch(route('seserahan.reorder'),{ids:localItems.value.map(s=>s.id)},{preserveScroll:true,onSuccess:()=>showToast('Urutan seserahan berhasil disimpan.'),onError:()=>{localItems.value=[...props.items];showToast('Urutan seserahan gagal disimpan.')}});endDrag()} function endDrag(){draggedIndex.value=draggedId.value=dragOverIndex.value=dragOverId.value=null}
+function exportToExcel(){if(!filteredItems.value.length){showToast('Tidak ada data untuk diekspor');return}const now=new Date(), rows=filteredItems.value.map((s,i)=>[s.no||i+1,s.kategori||'',s.nama_item||'',untukLabel(s.untuk),s.qty||0,s.satuan||'',s.harga||0,(s.qty||0)*(s.harga||0),statusLabel(s.status)]);rows.push(['','TOTAL','','','','','',filteredTotalHarga.value,'']);const ws=XLSX.utils.aoa_to_sheet([['DAFTAR LIST SESERAHAN'],[`Dicetak pada: ${now.toLocaleString('id-ID')}`],[],['No','Kategori','Nama Item','Untuk','Qty','Satuan','Harga Satuan','Total','Status'],...rows]);ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:8}},{s:{r:1,c:0},e:{r:1,c:8}}];ws['!cols']=[{wch:5},{wch:20},{wch:30},{wch:20},{wch:10},{wch:15},{wch:20},{wch:20},{wch:20}];const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'List Seserahan');XLSX.writeFile(wb,`List_Seserahan_${now.toISOString().split('T')[0]}.xlsx`);showToast('Data berhasil diekspor ke Excel')}
+const EmptyState=defineComponent({props:{filtered:Boolean},emits:['create','reset'],setup(p,{emit}){return()=>h('div',{class:'empty-card'},[h(Gift),h('h2',p.filtered?'Seserahan tidak ditemukan':'Belum ada seserahan'),h('p',p.filtered?'Tidak ada data yang sesuai dengan pencarian atau filter.':'Mulai catat kebutuhan seserahan untuk hari bahagiamu.'),h('button',{class:p.filtered?'secondary-action':'primary-action',onClick:()=>emit(p.filtered?'reset':'create')},[h(p.filtered?X:Plus),p.filtered?'Reset Filter':'Tambah Seserahan Pertama'])])}});
 </script>
 
 <style scoped>
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: var(--space-md);
-  margin-bottom: var(--space-xl);
-}
-@media (min-width: 640px) { .summary-grid { grid-template-columns: repeat(3, 1fr); } }
-
-.summary-card { padding: var(--space-xl); }
-.summary-card__label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: none;
-  letter-spacing: 0.02em;
-}
-.summary-card__value {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--text);
-  margin-top: 6px;
-  letter-spacing: -0.02em;
-}
-.summary-card__sub { font-size: 11.5px; color: var(--text-muted); margin-top: 4px; }
-
-.toolbar {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  flex-wrap: wrap;
-  margin-bottom: var(--space-lg);
-}
-.toolbar__search { position: relative; flex: 1; min-width: 180px; }
-.search-icon {
-  position: absolute; left: 10px; top: 50%;
-  transform: translateY(-50%); color: var(--text-dim);
-  font-size: 12px; pointer-events: none;
-}
-.search-input { padding-left: 30px; }
-.toolbar__select { max-width: 160px; }
-
-.draggable-row { cursor: grab; position: relative; transition: background 0.18s ease, opacity 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease; }
-.draggable-row.is-dragging { opacity: 0.45; transform: scale(0.995); }
-.draggable-row.is-drop-target { background: var(--rose-pale); box-shadow: inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
-.draggable-row.is-drop-before { box-shadow: inset 0 3px 0 var(--rose), inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
-.draggable-row.is-drop-after { box-shadow: inset 0 -3px 0 var(--rose), inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
-.draggable-row.is-drop-before td:first-child::before,
-.draggable-row.is-drop-after td:first-child::after { content: ''; position: absolute; left: 10px; width: 8px; height: 8px; border-radius: 999px; background: var(--rose); box-shadow: 0 0 0 3px var(--rose-pale); }
-.draggable-row.is-drop-before td:first-child::before { top: -4px; }
-.draggable-row.is-drop-after td:first-child::after { bottom: -4px; }
-.draggable-row.is-drag-disabled { cursor: default; }
-.drag-cell { white-space: nowrap; touch-action: none; padding: 12px; cursor: grab; }
-.drag-cell i { color: var(--text-dim); margin-right: 6px; font-size: 16px; }
-.is-drag-disabled .drag-cell i { opacity: 0.35; }
-
-.mono-text { font-family: monospace; font-size: 11px; color: var(--text-dim); }
-.item-name { font-size: 13.5px; font-weight: 500; color: var(--text); }
-.item-sub  { font-size: 11.5px; color: var(--text-muted); margin-top: 2px; }
-
-.text-right { text-align: right; }
-.fw-600 { font-weight: 600; }
-.fw-700 { font-weight: 700; }
-.text-dark  { color: var(--text); }
-.text-dim   { color: var(--text-dim); }
-
-.tfoot-row td {
-  padding: 10px 14px;
-  background: var(--rose-pale);
-  border-top: 2px solid var(--border);
-  font-size: 13px;
-}
-.tfoot-label {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-}
-
-.chip--cpw { background: #fdf0f8; color: #c4719e; border: 1px solid #f0c8e4; }
-.chip--cpp { background: #eef4ff; color: #5a82c4; border: 1px solid #c8d8f0; }
-.chip--neutral { background: var(--bg-soft); color: var(--text-muted); border: 1px solid var(--border); }
-
-.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
-@media (max-width: 480px) { .form-row-2 { grid-template-columns: 1fr; } }
+.seserahan-page{display:grid;grid-template-columns:minmax(0,1fr);row-gap:18px;padding-bottom:24px}.seserahan-page>*{margin-block:0}.hero-card{display:flex;min-height:190px;padding:34px 38px;align-items:center;justify-content:space-between;gap:28px;border:1px solid var(--border);border-radius:20px;background:radial-gradient(circle at 90% 20%,rgba(111,146,95,.24),transparent 34%),linear-gradient(135deg,#fff,#eef4e8)}.eyebrow{display:block;margin-bottom:7px;color:var(--accent-hover);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}.hero-card h1{font-family:var(--font-display);font-size:clamp(28px,3vw,38px);line-height:1.15}.hero-card p{margin-top:9px;color:var(--text-muted);font-size:14px}.primary-action,.secondary-action,.icon-action,.filter-toggle,.drag-handle{display:inline-flex;align-items:center;justify-content:center;border:0;font:inherit;cursor:pointer}.primary-action{min-height:43px;padding:10px 16px;gap:8px;border-radius:10px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:700}.primary-action:hover{background:var(--accent-hover)}.primary-action:disabled{opacity:.65;cursor:wait}.primary-action svg,.secondary-action svg{width:16px}.summary-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.summary-card{display:flex;padding:18px 20px;gap:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface);box-shadow:var(--shadow-sm)}.summary-icon{display:flex;width:38px;height:38px;align-items:center;justify-content:center;flex:none;border-radius:10px;background:var(--accent-soft);color:var(--accent-hover)}.summary-icon svg{width:20px}.summary-icon--money{background:var(--warn-bg);color:var(--warn-text)}.summary-label{font-size:12px;font-weight:600;color:var(--text-muted)}.summary-value{margin-top:5px;font-size:clamp(20px,2vw,26px);font-weight:800}.summary-sub{margin-top:4px;color:var(--text-muted);font-size:11.5px}.progress-track{height:6px;margin-top:7px;overflow:hidden;border-radius:99px;background:var(--surface-muted)}.progress-track span{display:block;height:100%;background:linear-gradient(90deg,var(--accent-hover),var(--accent-light))}.data-panel{overflow:hidden;border:1px solid var(--border);border-radius:14px;background:var(--surface);box-shadow:var(--shadow-sm)}.data-panel>.toolbar{display:flex;margin:0;padding:12px;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border);border-radius:0;box-shadow:none}.toolbar-top{display:flex;flex:1}.search-wrap{position:relative;flex:1}.search-wrap>svg{position:absolute;left:13px;top:50%;width:16px;transform:translateY(-50%);color:var(--text-dim)}.toolbar-control,.secondary-action{box-sizing:border-box;height:40px;min-height:40px;padding:0 12px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--text-muted);font:500 12.5px var(--font);line-height:1}.search-wrap input{width:100%;padding-left:39px}.toolbar-filters{display:flex;gap:8px}.select-wrap{position:relative;display:flex}.select-wrap select{width:155px;padding-right:34px;appearance:none}.select-wrap>svg{position:absolute;right:11px;top:50%;width:15px;transform:translateY(-50%);pointer-events:none}.secondary-action{gap:7px}.filter-toggle{display:none;position:relative;width:44px;height:44px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--text-muted)}.filter-toggle>svg{width:19px}.filter-toggle>span{position:absolute;top:7px;right:7px;width:6px;height:6px;border-radius:50%;background:var(--accent)}.filter-toggle.active{background:var(--accent-soft);color:var(--accent-hover)}.desktop-table{display:block;margin:0;padding:0;overflow-x:auto}.desktop-table .tbl{width:100%;margin:0!important;border-spacing:0;border-collapse:collapse}.tbl thead tr{height:42px}.tbl thead th{height:42px;padding-block:0!important;vertical-align:middle}.tbl th{padding:11px 12px;background:var(--surface-muted);color:var(--text-muted);font-size:10.5px;font-weight:700;letter-spacing:.055em;text-transform:uppercase;vertical-align:middle}.tbl td{padding:12px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle}.tbl td small{display:block;margin-top:3px;color:var(--text-muted)}.right{text-align:right}.center{text-align:center}.strong{font-weight:700}.actions{display:flex;justify-content:center}.icon-action{width:36px;height:36px;border-radius:8px;background:transparent;color:var(--text-dim)}.icon-action:hover{background:var(--accent-soft);color:var(--accent-hover)}.icon-action.danger:hover{background:var(--danger-bg);color:var(--danger-text)}.icon-action svg{width:15px}.drag-cell{white-space:nowrap;touch-action:none;color:var(--text-dim);cursor:grab}.drag-cell svg{display:inline;width:16px;margin-right:4px;vertical-align:middle;color:var(--text-dim);opacity:.62;stroke-width:1.8}.is-drag-disabled .drag-cell svg{opacity:.28}.draggable-row.is-dragging{opacity:.45}.draggable-row.is-drop-before{box-shadow:inset 0 3px var(--accent)}.draggable-row.is-drop-after{box-shadow:inset 0 -3px var(--accent)}.is-drag-disabled .drag-cell{opacity:.4;cursor:default}.tbl tfoot td{padding:10px 14px;background:var(--rose-pale);border-top:2px solid var(--border);border-bottom:0;font-size:13px;line-height:normal;vertical-align:middle}.tbl tfoot td:first-child{font-size:11px;font-weight:700;text-transform:uppercase}.chip--cpw{background:#fdf0f8;color:#c4719e}.chip--cpp{background:#eef4ff;color:#5a82c4}.source-chip,.source-label{display:inline-flex;align-items:center;gap:4px}.source-chip svg,.source-label svg{width:13px;height:13px;flex:none}.mobile-records{display:none}.empty-card{display:flex;min-height:250px;padding:32px;align-items:center;justify-content:center;flex-direction:column;text-align:center}.empty-card>svg{width:42px;color:var(--accent)}.empty-card h2{margin-top:12px;font-size:16px}.empty-card p{margin:6px 0 17px;color:var(--text-muted);font-size:12px}.drawer-backdrop{position:fixed;inset:0;z-index:1000;display:flex;justify-content:flex-end;background:rgba(34,45,37,.28);backdrop-filter:blur(2px);animation:drawerFade .2s ease}.drawer{display:flex;width:min(440px,100vw);height:100dvh;flex-direction:column;background:var(--surface);box-shadow:-18px 0 48px rgba(40,54,44,.16);animation:drawerFromRight .25s ease}.drawer-handle{display:none}.drawer-header{display:flex;min-height:86px;padding:20px 22px;align-items:center;justify-content:space-between;gap:16px;border-bottom:1px solid var(--border)}.drawer-header .eyebrow{display:block;margin:0 0 3px;font-size:9px;font-weight:700;line-height:1.2;letter-spacing:.1em;text-transform:uppercase}.drawer-header .drawer-title{margin:0;font-family:var(--font-display);font-size:18px;font-weight:700;line-height:1.25}.drawer-body{display:flex;min-height:0;padding:22px;gap:16px;flex:1;flex-direction:column;overflow:auto}.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px}.field{display:grid;gap:7px}.field label{font-size:12.5px;font-weight:650}.field label span{color:var(--accent)}.field-control{position:relative;display:flex;align-items:center;overflow:hidden;border:1px solid var(--border);border-radius:10px;background:#fbfcfa;transition:border-color .16s ease,box-shadow .16s ease,background .16s ease}.field-control:focus-within{border-color:var(--accent);background:var(--surface);box-shadow:0 0 0 3px var(--accent-soft)}.field-control>svg{position:absolute;left:13px;width:17px;color:#7a8b7e}.field-control>svg:last-child:not(:first-child){left:auto;right:13px;width:15px}.field-control input,.field-control select{width:100%;min-height:46px;padding:10px 40px;border:0!important;border-radius:inherit;outline:0;background:transparent!important;box-shadow:none!important;font:500 13px var(--font)}.field-control input:focus,.field-control select:focus{border:0!important;outline:0;box-shadow:none!important}.field-control select{appearance:none}.drawer-footer{display:flex;justify-content:flex-end;gap:9px;margin:auto -22px -22px;padding:18px 22px 22px;border-top:1px solid var(--border)}.spinner{animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}@keyframes drawerFade{from{opacity:0}}@keyframes drawerFromRight{from{transform:translateX(100%)}}@keyframes drawerFromBottom{from{transform:translateY(100%)}}
+@media(max-width:900px){.toolbar{align-items:stretch;flex-direction:column}.toolbar-top{width:100%}.toolbar-filters{width:100%;flex-wrap:wrap}.select-wrap{flex:1}.select-wrap select{width:100%;min-width:145px}}
+@media(prefers-reduced-motion:reduce){.drawer-backdrop,.drawer,.draggable-row,.primary-action,.icon-action,.progress-track span{animation:none!important;transition:none!important}}
+@media(max-width:767px){.seserahan-page{gap:14px}.hero-card{min-height:auto;padding:18px 16px;align-items:stretch;flex-direction:column;gap:14px}.hero-card h1{font-size:25px}.hero-card p{font-size:12.5px}.hero-card .primary-action{width:100%}.summary-grid{grid-template-columns:1fr 1fr;gap:8px}.summary-card{padding:13px;gap:9px}.summary-card:last-child{grid-column:1/-1}.summary-icon{width:34px;height:34px}.summary-value{font-size:19px}.data-panel{overflow:visible;border:0;background:transparent;box-shadow:none}.toolbar{display:block;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}.toolbar-top{gap:8px}.toolbar-control,.secondary-action{height:44px;min-height:44px}.filter-toggle{display:flex}.toolbar-filters{display:none;grid-template-columns:1fr 1fr;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}.toolbar-filters.open{display:grid}.toolbar-filters>*{width:100%}.select-wrap select{width:100%}.export-action{grid-column:1/-1}.desktop-table{display:none}.mobile-records{display:grid;gap:10px;margin-top:14px}.record-card{padding:14px;border:1px solid var(--border);border-left-width:4px;border-radius:12px;background:var(--surface);box-shadow:var(--shadow-sm)}.record-card.bought{border-left-color:var(--ok-text)}.record-card.pending{border-left-color:var(--danger-text)}.record-head{display:flex;justify-content:space-between;gap:8px}.record-head h2{margin-top:6px;font-size:14px}.category{color:var(--text-muted);font-size:11px}.record-card dl{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:13px;padding:11px 0;border-block:1px solid var(--border)}.record-card dt{color:var(--text-muted);font-size:10px}.record-card dd{margin-top:3px;font-size:11.5px;font-weight:700}.record-footer{display:flex;margin-top:8px;align-items:center;justify-content:space-between}.drag-handle{gap:5px;padding:8px;background:none;color:var(--text-muted);font-size:11px;touch-action:none}.drag-handle svg{width:15px}.drawer-backdrop{align-items:flex-end}.drawer{width:100%;height:auto;max-height:92dvh;border-radius:20px 20px 0 0;box-shadow:0 -18px 48px rgba(40,54,44,.16);animation:drawerFromBottom .25s ease}.drawer-handle{display:block;width:40px;height:4px;margin:9px auto 0;border-radius:99px;background:var(--border)}.drawer-header{min-height:68px;padding:10px 16px 13px}.drawer-header .icon-action{width:44px;height:44px}.drawer-body{padding:16px 16px calc(16px + env(safe-area-inset-bottom))}.form-row{grid-template-columns:1fr}.field-control input,.field-control select{font-size:16px}.drawer-footer{position:sticky;bottom:calc(-16px - env(safe-area-inset-bottom));margin:auto -16px calc(-16px - env(safe-area-inset-bottom));padding:12px 16px calc(16px + env(safe-area-inset-bottom));background:var(--surface)}.drawer-footer>*{flex:1}}
 </style>

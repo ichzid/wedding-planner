@@ -1,582 +1,79 @@
 <template>
   <AppLayout>
-    <Head title="Daftar Undangan" />
-    <div>
-    <!-- Page Header -->
-    <div class="page-header">
-      <div style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px;">
-        <div>
-          <h1 class="page-title">Daftar Undangan</h1>
-          <p class="page-sub">Kelola undangan tamu pernikahan Anda</p>
-        </div>
-        <button class="btn btn--primary" @click="openAdd">
-          <i class="fa-solid fa-plus"></i>
-          Tambah Tamu
-        </button>
-      </div>
-    </div>
+    <div class="guest-page">
+      <header class="hero-card">
+        <div><span class="eyebrow">Orang-orang terkasih</span><h1>Daftar Undangan</h1><p>Kelola daftar tamu dan pantau konfirmasi kehadiran dalam satu tempat.</p></div>
+        <button class="primary-action" type="button" @click="openCreate"><Plus aria-hidden="true" />Tambah Tamu</button>
+      </header>
 
-    <!-- Summary Cards -->
-    <div class="summary-grid">
-      <div class="card summary-card">
-        <p class="summary-card__label">Total Tamu</p>
-        <p class="summary-card__value">{{ totalTamu }}</p>
-        <p class="summary-card__sub">{{ hadir }} konfirmasi hadir</p>
-      </div>
-      <div class="card summary-card">
-        <p class="summary-card__label">Mempelai Wanita</p>
-        <p class="summary-card__value">{{ tamuCpw }}</p>
-        <p class="summary-card__sub">Tamu dari pihak mempelai wanita</p>
-      </div>
-      <div class="card summary-card">
-        <p class="summary-card__label">Mempelai Pria</p>
-        <p class="summary-card__value">{{ tamuCpp }}</p>
-        <p class="summary-card__sub">Tamu dari pihak mempelai pria</p>
-      </div>
-      <div class="card summary-card">
-        <p class="summary-card__label">Konfirmasi Hadir</p>
-        <p class="summary-card__value">{{ hadir }}</p>
-        <p class="summary-card__sub">Dari {{ totalTamu }} total tamu</p>
-      </div>
-    </div>
+      <section class="summary-grid" aria-label="Ringkasan daftar tamu">
+        <article class="summary-card"><span class="summary-icon"><UsersRound aria-hidden="true" /></span><div><p class="summary-label">Total Tamu</p><p class="summary-value">{{ totalTamu }}</p><p class="summary-sub">{{ hadir }} konfirmasi hadir</p></div></article>
+        <article class="summary-card"><span class="summary-icon summary-icon--cpw"><UserRound aria-hidden="true" /></span><div><p class="summary-label">Calon Pengantin Wanita</p><p class="summary-value">{{ tamuCpw }}</p><p class="summary-sub">{{ namaCpw || 'Pihak wanita' }}</p></div></article>
+        <article class="summary-card"><span class="summary-icon summary-icon--cpp"><UserRound aria-hidden="true" /></span><div><p class="summary-label">Calon Pengantin Pria</p><p class="summary-value">{{ tamuCpp }}</p><p class="summary-sub">{{ namaCpp || 'Pihak pria' }}</p></div></article>
+        <article class="summary-card"><span class="summary-icon summary-icon--ok"><UserRoundCheck aria-hidden="true" /></span><div><p class="summary-label">Konfirmasi Hadir</p><p class="summary-value">{{ hadir }}</p><div class="progress-track"><span :style="{ width: attendancePct + '%' }"></span></div></div></article>
+      </section>
 
-    <!-- Filters -->
-    <div class="toolbar">
-      <div class="toolbar__search">
-        <i class="fa-solid fa-magnifying-glass search-icon"></i>
-        <input v-model="search" type="text" placeholder="Cari nama tamu..." class="form-input search-input" id="search-tamu">
-      </div>
-      <select v-model="filterPihak" class="form-input toolbar__select" id="filter-pihak">
-        <option value="">Semua Pihak</option>
-        <option value="cpw">Pihak Mempelai Wanita</option>
-        <option value="cpp">Pihak Mempelai Pria</option>
-        <option value="umum">Umum</option>
-      </select>
-      <select v-model="filterStatus" class="form-input toolbar__select" id="filter-status">
-        <option value="">Semua Status</option>
-        <option value="belum_dikirim">Belum Dikirim</option>
-        <option value="sudah_dikirim">Sudah Dikirim</option>
-        <option value="hadir">Konfirmasi Hadir</option>
-        <option value="tidak_hadir">Tidak Hadir</option>
-      </select>
-      <button class="btn btn--outline" @click="exportToExcel">
-        <i class="fa-solid fa-file-excel" style="color: #2e7d32;"></i>
-        Export Excel
-      </button>
-    </div>
-
-    <!-- Table -->
-    <div class="card">
-      <div class="section-header">
-        <span class="section-title">
-          <i class="fa-solid fa-list" style="color:var(--rose); margin-right:8px;"></i>
-          Daftar Undangan ({{ filteredGuests.length }})
-        </span>
-      </div>
-      <div style="overflow-x:auto;">
-        <table class="tbl">
-          <thead>
-            <tr>
-              <th style="width:40px">#</th>
-              <th>Nama Tamu</th>
-              <th>Pihak</th>
-              <th>Status Undangan</th>
-              <th>Catatan</th>
-              <th style="width:90px; text-align:center;">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-if="filteredGuests.length === 0">
-              <td colspan="6">
-                <div class="empty-state">
-                  <div class="empty-state__icon"><i class="fa-solid fa-user-slash"></i></div>
-                  <div class="empty-state__text">Belum ada tamu yang dicatat.</div>
-                  <button class="btn btn--primary btn--sm" @click="openAdd">
-                    <i class="fa-solid fa-plus"></i> Tambah Tamu Sekarang
-                  </button>
-                </div>
-              </td>
-            </tr>
-            <tr
-              v-for="(guest, index) in filteredGuests"
-              :key="guest.id"
-              class="draggable-row"
-              :class="{ 'is-dragging': draggedId === guest.id, 'is-drop-target': dragOverId === guest.id, 'is-drop-before': dropPlacement(guest.id) === 'before', 'is-drop-after': dropPlacement(guest.id) === 'after', 'is-drag-disabled': !canDragRows }"
-              :draggable="canDragRows"
-              @dragstart="startDrag(guest, index, $event)"
-              @dragover.prevent="setDragOver(guest, index)"
-              @drop="dropRow(index)"
-              @dragend="endDrag"
-              @touchstart="handleTouchStart"
-              @touchmove="handleTouchMove"
-              @touchend="handleTouchEnd"
-            >
-              <td class="mono-text drag-cell"><i class="fa-solid fa-grip-vertical"></i> {{ guest.no || index + 1 }}</td>
-              <td>
-                <span class="guest-name">{{ guest.nama_tamu }}</span>
-              </td>
-              <td>
-                <span class="chip" :class="pihakChipClass(guest.pihak)">
-                  {{ pihakLabel(guest.pihak) }}
-                </span>
-              </td>
-              <td>
-                <span class="chip" :class="statusChipClass(guest.status)">
-                  {{ statusLabel(guest.status) }}
-                </span>
-              </td>
-              <td style="font-size:12.5px; color:var(--text-muted); max-width:200px;">
-                {{ guest.catatan || '—' }}
-              </td>
-              <td style="text-align:center;">
-                <div style="display:flex; gap:4px; justify-content:center;">
-                  <button class="btn btn--ghost btn--icon" title="Copy" @click="openCopy(guest)" :id="'copy-tamu-'+guest.id">
-                    <i class="fa-solid fa-copy action-icon action-icon--copy"></i>
-                  </button>
-                  <button class="btn btn--ghost btn--icon" title="Edit" @click="openEdit(guest)" :id="'edit-tamu-'+guest.id">
-                    <i class="fa-solid fa-pen-to-square action-icon action-icon--edit"></i>
-                  </button>
-                  <button class="btn btn--danger-ghost btn--icon" title="Hapus" @click="confirmDelete(guest)" :id="'del-tamu-'+guest.id">
-                    <i class="fa-solid fa-trash action-icon action-icon--delete"></i>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Add/Edit Modal -->
-    <Teleport to="body">
-      <div v-if="showModal" class="modal-backdrop">
-        <div class="modal-box">
-          <div class="modal-header">
-            <h3 class="modal-title">{{ isEditing ? 'Edit Tamu' : (isCopying ? 'Copy Tamu' : 'Tambah Tamu') }}</h3>
-            <button class="btn btn--icon btn--ghost" @click="closeModal">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
+      <section class="data-panel">
+        <section class="toolbar" aria-label="Pencarian dan filter tamu">
+          <div class="toolbar-top"><div class="search-wrap"><Search aria-hidden="true" /><input v-model="search" class="toolbar-control" type="search" placeholder="Cari nama tamu atau catatan..." aria-label="Cari tamu"></div><button class="filter-toggle" :class="{ active: mobileFiltersOpen || filterPihak || filterStatus }" type="button" :aria-expanded="mobileFiltersOpen" aria-controls="guest-filters" aria-label="Tampilkan filter tamu" @click="mobileFiltersOpen = !mobileFiltersOpen"><ListFilter aria-hidden="true" /><span v-if="filterPihak || filterStatus" aria-hidden="true" /></button></div>
+          <div id="guest-filters" class="toolbar-filters" :class="{ open: mobileFiltersOpen }">
+            <label class="select-wrap"><select v-model="filterPihak" class="toolbar-control" aria-label="Filter pihak tamu"><option value="">Semua Pihak</option><option value="cpw">Calon Pengantin Wanita</option><option value="cpp">Calon Pengantin Pria</option><option value="umum">Umum</option></select><ChevronDown aria-hidden="true" /></label>
+            <label class="select-wrap"><select v-model="filterStatus" class="toolbar-control" aria-label="Filter status undangan"><option value="">Semua Status</option><option value="belum_dikirim">Belum Dikirim</option><option value="sudah_dikirim">Sudah Dikirim</option><option value="hadir">Konfirmasi Hadir</option><option value="tidak_hadir">Tidak Hadir</option></select><ChevronDown aria-hidden="true" /></label>
+            <button v-if="hasFilters" class="secondary-action" type="button" @click="resetFilters"><X aria-hidden="true" />Reset</button>
+            <button class="secondary-action export-action" type="button" @click="exportToExcel"><FileSpreadsheet aria-hidden="true" />Ekspor Excel</button>
           </div>
-          <form @submit.prevent="submitForm" class="modal-body">
-            <div>
-              <label class="form-label">Nama Tamu *</label>
-              <input v-model="form.nama_tamu" type="text" class="form-input" placeholder="Contoh: Budi Santoso" id="input-nama-tamu" required>
-              <p v-if="errors.nama_tamu" class="form-error">{{ errors.nama_tamu }}</p>
-            </div>
-            <div class="form-row-2" style="margin-top:var(--space-md)">
-              <div>
-                <label class="form-label">Dari Pihak *</label>
-                <select v-model="form.pihak" class="form-input" id="input-pihak" required>
-                  <option value="cpw">Pihak Mempelai Wanita</option>
-                  <option value="cpp">Pihak Mempelai Pria</option>
-                  <option value="umum">Umum / Keduanya</option>
-                </select>
-                <p v-if="errors.pihak" class="form-error">{{ errors.pihak }}</p>
-              </div>
-              <div>
-                <label class="form-label">Status Undangan *</label>
-                <select v-model="form.status" class="form-input" id="input-status" required>
-                  <option value="belum_dikirim">Belum Dikirim</option>
-                  <option value="sudah_dikirim">Sudah Dikirim</option>
-                  <option value="hadir">Konfirmasi Hadir</option>
-                  <option value="tidak_hadir">Tidak Hadir</option>
-                </select>
-                <p v-if="errors.status" class="form-error">{{ errors.status }}</p>
-              </div>
-            </div>
-            <div style="margin-top:var(--space-md)">
-              <label class="form-label">Catatan</label>
-              <input v-model="form.catatan" type="text" class="form-input" placeholder="Misal: Teman kuliah, Keluarga besar..." id="input-catatan">
-            </div>
-            <div class="modal-footer" style="margin-top:var(--space-lg);padding:0">
-              <button type="button" class="btn btn--outline" style="flex:1;justify-content:center" @click="closeModal">Batal</button>
-              <button type="submit" class="btn btn--primary" style="flex:1;justify-content:center" :disabled="submitting">
-                <i v-if="submitting" class="fa-solid fa-spinner fa-spin fa-xs"></i>
-                {{ submitting ? 'Menyimpan...' : 'Simpan' }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
+        </section>
 
-      <!-- Delete Confirm Modal -->
-      <div v-if="showDeleteModal" class="modal-backdrop" @click.self="showDeleteModal=false">
-        <div class="modal-box" style="max-width:380px;">
-          <div class="modal-header">
-            <span class="modal-title" style="color:var(--danger-text);">
-              <i class="fa-solid fa-triangle-exclamation" style="margin-right:8px;"></i>
-              Hapus Tamu
-            </span>
-            <button class="btn btn--ghost btn--icon" @click="showDeleteModal=false">
-              <i class="fa-solid fa-xmark"></i>
-            </button>
-          </div>
-          <div class="modal-body" style="padding-top:12px;">
-            <p style="font-size:14px; color:var(--text-muted); line-height:1.6;">
-              Hapus <strong style="color:var(--text);">{{ deleteTarget?.nama_tamu }}</strong> dari daftar tamu? Tindakan ini tidak dapat dibatalkan.
-            </p>
-            <div class="modal-footer" style="padding:16px 0 0; border:none;">
-              <button class="btn btn--outline" @click="showDeleteModal=false">Batal</button>
-              <button class="btn btn--primary" style="background:var(--danger-text); margin-left:auto;" @click="doDelete">
-                <i class="fa-solid fa-trash"></i> Ya, Hapus
-              </button>
-            </div>
-          </div>
+        <div class="desktop-table">
+          <table class="tbl"><thead><tr><th>#</th><th>Nama Tamu</th><th>Pihak</th><th>Status Undangan</th><th>Catatan</th><th class="center">Aksi</th></tr></thead><tbody>
+            <tr v-for="(guest,index) in filteredGuests" :key="guest.id" class="draggable-row" :class="rowClasses(guest)" :draggable="canDragRows" @dragstart="startDrag(guest,index,$event)" @dragover.prevent="setDragOver(guest,index)" @drop.prevent="dropRow(index)" @dragend="endDrag">
+              <td class="drag-cell" @touchstart.stop="handleTouchStart($event,guest,index)" @touchmove.stop="handleTouchMove" @touchend.stop="handleTouchEnd" @touchcancel.stop="endDrag"><GripVertical aria-hidden="true" /> {{ guest.no || index + 1 }}</td><td><strong>{{ guest.nama_tamu }}</strong></td><td><span class="chip party-chip" :class="pihakChipClass(guest.pihak)"><Venus v-if="guest.pihak === 'cpw'" aria-hidden="true" /><Mars v-if="guest.pihak === 'cpp'" aria-hidden="true" />{{ pihakLabel(guest.pihak) }}</span></td><td><span class="chip" :class="statusChipClass(guest.status)">{{ statusLabel(guest.status) }}</span></td><td class="note">{{ guest.catatan || '–' }}</td><td><div class="actions"><button class="icon-action" type="button" data-tooltip="Salin" :aria-label="`Salin tamu ${guest.nama_tamu}`" @click="openCopy(guest)"><Copy aria-hidden="true" /></button><button class="icon-action" type="button" data-tooltip="Edit" :aria-label="`Edit tamu ${guest.nama_tamu}`" @click="openEdit(guest)"><Pencil aria-hidden="true" /></button><button class="icon-action danger" type="button" data-tooltip="Hapus" :aria-label="`Hapus tamu ${guest.nama_tamu}`" @click="confirmDelete(guest)"><Trash2 aria-hidden="true" /></button></div></td>
+            </tr></tbody><tfoot v-if="filteredGuests.length"><tr><td colspan="4">{{ filteredGuests.length }} tamu ditampilkan</td><td class="strong">{{ filteredHadir }} hadir</td><td></td></tr></tfoot></table>
+          <EmptyState v-if="!filteredGuests.length" :filtered="hasFilters" @create="openCreate" @reset="resetFilters" />
         </div>
-      </div>
-    </Teleport>
+
+        <section class="mobile-records" aria-label="Daftar tamu undangan">
+          <article v-for="(guest,index) in filteredGuests" :key="guest.id" class="record-card" :class="statusChipClass(guest.status)"><div class="record-head"><div><span class="category">Tamu #{{ guest.no || index + 1 }}</span><h2>{{ guest.nama_tamu }}</h2></div><span class="chip" :class="statusChipClass(guest.status)">{{ statusLabel(guest.status) }}</span></div><dl><div><dt>Pihak</dt><dd class="party-label"><Venus v-if="guest.pihak === 'cpw'" aria-hidden="true" /><Mars v-if="guest.pihak === 'cpp'" aria-hidden="true" />{{ pihakLabel(guest.pihak) }}</dd></div><div><dt>Status</dt><dd>{{ statusLabel(guest.status) }}</dd></div></dl><p v-if="guest.catatan" class="record-note">{{ guest.catatan }}</p><div class="record-footer"><button class="drag-handle" type="button" :disabled="!canDragRows" :aria-label="`Geser urutan tamu ${guest.nama_tamu}`" @touchstart.stop="handleTouchStart($event,guest,index)" @touchmove.stop="handleTouchMove" @touchend.stop="handleTouchEnd" @touchcancel.stop="endDrag"><GripVertical aria-hidden="true" />Urutan {{ guest.no || index + 1 }}</button><div class="actions"><button class="icon-action" type="button" :aria-label="`Salin tamu ${guest.nama_tamu}`" @click="openCopy(guest)"><Copy /></button><button class="icon-action" type="button" :aria-label="`Edit tamu ${guest.nama_tamu}`" @click="openEdit(guest)"><Pencil /></button><button class="icon-action danger" type="button" :aria-label="`Hapus tamu ${guest.nama_tamu}`" @click="confirmDelete(guest)"><Trash2 /></button></div></div></article>
+          <EmptyState v-if="!filteredGuests.length" :filtered="hasFilters" @create="openCreate" @reset="resetFilters" />
+        </section>
+      </section>
     </div>
+
+    <Teleport to="body"><div v-if="showDrawer" class="drawer-backdrop" @click.self="closeDrawer"><aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="guest-drawer-title"><div class="drawer-handle" aria-hidden="true"></div><header class="drawer-header"><div><span class="eyebrow">Daftar undangan</span><h3 id="guest-drawer-title">{{ editGuest ? 'Edit Tamu' : copyGuest ? 'Salin Tamu' : 'Tambah Tamu' }}</h3></div><button class="icon-action" type="button" aria-label="Tutup form tamu" @click="closeDrawer"><X /></button></header>
+      <form class="drawer-body" @submit.prevent="save"><div class="field"><label for="guest-name">Nama Tamu <span>*</span></label><div class="field-control"><ContactRound aria-hidden="true" /><input id="guest-name" v-model="form.nama_tamu" required maxlength="255" placeholder="Contoh: Budi Santoso"></div></div><div class="field"><label for="guest-side">Dari Pihak <span>*</span></label><div class="field-control"><UsersRound aria-hidden="true" /><select id="guest-side" v-model="form.pihak" required><option value="cpw">Calon Pengantin Wanita</option><option value="cpp">Calon Pengantin Pria</option><option value="umum">Umum / Keduanya</option></select><ChevronDown aria-hidden="true" /></div></div><div class="field"><label for="guest-status">Status Undangan <span>*</span></label><div class="field-control"><CircleGauge aria-hidden="true" /><select id="guest-status" v-model="form.status" required><option value="belum_dikirim">Belum Dikirim</option><option value="sudah_dikirim">Sudah Dikirim</option><option value="hadir">Konfirmasi Hadir</option><option value="tidak_hadir">Tidak Hadir</option></select><ChevronDown aria-hidden="true" /></div></div><div class="field"><label for="guest-note">Catatan</label><div class="field-control textarea"><NotepadText aria-hidden="true" /><textarea id="guest-note" v-model="form.catatan" maxlength="500" rows="4" placeholder="Contoh: Teman kuliah atau keluarga besar"></textarea></div></div><footer class="drawer-footer"><button class="secondary-action" type="button" @click="closeDrawer">Batal</button><button class="primary-action" type="submit" :disabled="saving"><LoaderCircle v-if="saving" class="spinner" aria-hidden="true" />{{ saving ? 'Menyimpan...' : 'Simpan Tamu' }}</button></footer></form></aside></div></Teleport>
   </AppLayout>
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue';
-import { Head, router } from '@inertiajs/vue3';
+import { computed, defineComponent, h, onBeforeUnmount, onMounted, ref, watch } from 'vue';
+import { router } from '@inertiajs/vue3';
 import { route } from 'ziggy-js';
 import AppLayout from '@/Layouts/AppLayout.vue';
-import { showToast } from '@/utils.js';
+import { ChevronDown, CircleGauge, ContactRound, Copy, FileSpreadsheet, GripVertical, ListFilter, LoaderCircle, Mars, NotepadText, Pencil, Plus, Search, Trash2, UserRound, UserRoundCheck, UsersRound, Venus, X } from '@lucide/vue';
+import { confirmDeleteDialog, showToast } from '@/utils.js';
 import * as XLSX from 'xlsx';
 
-const props = defineProps({
-  guests:    Array,
-  totalTamu: Number,
-  tamuCpw:   Number,
-  tamuCpp:   Number,
-  tamuUmum:  Number,
-  hadir:     Number,
-  namaCpw:   String,
-  namaCpp:   String,
-});
-
-const localGuests = ref([...props.guests]);
-const search       = ref('');
-const filterPihak  = ref('');
-const filterStatus = ref('');
-const draggedIndex = ref(null);
-const draggedId = ref(null);
-const dragOverIndex = ref(null);
-const dragOverId = ref(null);
-const showModal    = ref(false);
-const showDeleteModal = ref(false);
-const deleteTarget    = ref(null);
-const isEditing    = ref(false);
-const isCopying    = ref(false);
-const editId       = ref(null);
-const submitting   = ref(false);
-const errors       = ref({});
-
-const form = ref({ nama_tamu: '', pihak: 'cpw', status: 'belum_dikirim', catatan: '' });
-
-watch(() => props.guests, (guests) => {
-  localGuests.value = [...guests];
-});
-
-const filteredGuests = computed(() => {
-  return localGuests.value.filter(g => {
-    const matchSearch = g.nama_tamu.toLowerCase().includes(search.value.toLowerCase());
-    const matchPihak  = filterPihak.value ? g.pihak === filterPihak.value : true;
-    const matchStatus = filterStatus.value ? g.status === filterStatus.value : true;
-    return matchSearch && matchPihak && matchStatus;
-  });
-});
-
-const canDragRows = computed(() => !search.value && !filterPihak.value && !filterStatus.value);
-
-function resetFilters() {
-  search.value = '';
-  filterPihak.value = '';
-  filterStatus.value = '';
-}
-
-function openAdd() {
-  isEditing.value = false;
-  isCopying.value = false;
-  editId.value    = null;
-  form.value      = { nama_tamu: '', pihak: 'cpw', status: 'belum_dikirim', catatan: '' };
-  errors.value    = {};
-  showModal.value = true;
-}
-
-function openCopy(guest) {
-  isEditing.value = false;
-  isCopying.value = true;
-  editId.value    = null;
-  form.value      = { nama_tamu: guest.nama_tamu, pihak: guest.pihak, status: guest.status, catatan: guest.catatan || '' };
-  errors.value    = {};
-  showModal.value = true;
-}
-
-function openEdit(guest) {
-  isEditing.value = true;
-  isCopying.value = false;
-  editId.value    = guest.id;
-  form.value      = { nama_tamu: guest.nama_tamu, pihak: guest.pihak, status: guest.status, catatan: guest.catatan || '' };
-  errors.value    = {};
-  showModal.value = true;
-}
-
-function closeModal() { showModal.value = false; }
-
-function submitForm() {
-  submitting.value = true;
-  errors.value     = {};
-
-  const url    = isEditing.value ? route('tamu.update', editId.value) : route('tamu.store');
-  const method = isEditing.value ? 'patch' : 'post';
-
-  router[method](url, form.value, {
-    onSuccess: () => { showModal.value = false; submitting.value = false; showToast(isEditing.value ? 'Tamu berhasil diperbarui' : (isCopying.value ? 'Copy tamu berhasil ditambahkan' : 'Tamu berhasil ditambahkan')); },
-    onError:   (e) => { errors.value = e; submitting.value = false; },
-    preserveScroll: true,
-  });
-}
-
-function confirmDelete(guest) {
-  deleteTarget.value  = guest;
-  showDeleteModal.value = true;
-}
-
-function doDelete() {
-  router.delete(route('tamu.destroy', deleteTarget.value.id), {
-    onSuccess: () => { showDeleteModal.value = false; showToast('Tamu berhasil dihapus'); },
-    preserveScroll: true,
-  });
-}
-
-function pihakLabel(pihak) {
-  if (pihak === 'cpw') return 'Mempelai Wanita';
-  if (pihak === 'cpp') return 'Mempelai Pria';
-  return 'Umum';
-}
-
-function pihakChipClass(pihak) {
-  if (pihak === 'cpw') return 'chip--cpw';
-  if (pihak === 'cpp') return 'chip--cpp';
-  return 'chip--neutral';
-}
-
-function statusLabel(status) {
-  const map = { belum_dikirim: 'Belum Dikirim', sudah_dikirim: 'Sudah Dikirim', hadir: 'Konfirmasi Hadir', tidak_hadir: 'Tidak Hadir' };
-  return map[status] || status;
-}
-
-function statusChipClass(status) {
-  if (status === 'hadir')        return 'chip--ok';
-  if (status === 'tidak_hadir')  return 'chip--danger';
-  if (status === 'sudah_dikirim') return 'chip--warn';
-  return 'chip--soft';
-}
-
-function exportToExcel() {
-  if (filteredGuests.value.length === 0) {
-    showToast('Tidak ada data untuk diexport');
-    return;
-  }
-
-  const dateNow = new Date();
-  const dateStr = dateNow.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-
-  const headers = ['No', 'Nama Tamu', 'Pihak', 'Status Undangan', 'Catatan'];
-  
-  const dataRows = filteredGuests.value.map((guest, index) => [
-    guest.no || index + 1,
-    guest.nama_tamu || '',
-    pihakLabel(guest.pihak),
-    statusLabel(guest.status),
-    guest.catatan || ''
-  ]);
-  
-  const finalData = [
-    ['DAFTAR TAMU UNDANGAN PERNIKAHAN'],
-    [`Dicetak pada: ${dateStr}`],
-    [], // empty row
-    headers,
-    ...dataRows
-  ];
-
-  const ws = XLSX.utils.aoa_to_sheet(finalData);
-  
-  // Merge cells for title
-  ws['!merges'] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: 4 } }, // Merge A1:E1
-    { s: { r: 1, c: 0 }, e: { r: 1, c: 4 } }  // Merge A2:E2
-  ];
-
-  // Set column widths
-  ws['!cols'] = [
-    { wch: 5 },  // No
-    { wch: 30 }, // Nama Tamu
-    { wch: 25 }, // Pihak
-    { wch: 20 }, // Status
-    { wch: 40 }  // Catatan
-  ];
-
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Daftar Undangan");
-  
-  XLSX.writeFile(wb, `Daftar_Undangan_${dateNow.toISOString().split('T')[0]}.xlsx`);
-  showToast('Data berhasil diexport ke Excel');
-}
-
-function startDrag(item, index, event) {
-  if (!canDragRows.value) return;
-  draggedIndex.value = index;
-  draggedId.value = item.id;
-  if(event && event.dataTransfer) {
-      event.dataTransfer.effectAllowed = 'move';
-  }
-}
-
-function handleTouchStart(event) {
-  if (!canDragRows.value) return;
-  const targetEl = event.target;
-  if (!targetEl?.closest('.drag-cell')) return;
-
-  const targetRow = targetEl.closest('.draggable-row');
-  if (targetRow) {
-      const b_index = Array.from(targetRow.parentNode.children).indexOf(targetRow);
-      startDrag(filteredGuests.value[b_index], b_index, null);
-  }
-}
-
-function handleTouchMove(event) {
-    if(!canDragRows.value || draggedId.value === null) return;
-    event.preventDefault(); // Prevent scrolling while dragging
-    const touch = event.touches[0];
-    const targetEl = document.elementFromPoint(touch.clientX, touch.clientY);
-    const targetRow = targetEl?.closest('.draggable-row');
-    if (targetRow) {
-        const index = Array.from(targetRow.parentNode.children).indexOf(targetRow);
-        const item = filteredGuests.value[index];
-        setDragOver(item, index);
-    }
-}
-
-function setDragOver(item, index) {
-  if (!canDragRows.value || draggedId.value === item.id) return;
-  dragOverId.value = item.id;
-  dragOverIndex.value = index;
-}
-
-function dropPlacement(id) {
-  if (dragOverId.value !== id || draggedIndex.value === null || dragOverIndex.value === null) return null;
-  return dragOverIndex.value > draggedIndex.value ? 'after' : 'before';
-}
-
-function dropRow(targetIndex) {
-  if (!canDragRows.value || draggedIndex.value === null || draggedIndex.value === targetIndex) {
-    endDrag();
-    return;
-  }
-
-  const reordered = [...localGuests.value];
-  const [moved] = reordered.splice(draggedIndex.value, 1);
-  reordered.splice(targetIndex, 0, moved);
-  localGuests.value = reordered.map((item, index) => ({ ...item, no: index + 1 }));
-
-  router.patch(route('tamu.reorder'), {
-    ids: localGuests.value.map((item) => item.id),
-  }, {
-    preserveScroll: true,
-    onSuccess: () => showToast('Urutan tamu berhasil disimpan.'),
-    onError: () => {
-      localGuests.value = [...props.guests];
-      showToast('Urutan tamu gagal disimpan.');
-    },
-  });
-
-  endDrag();
-}
-
-function handleTouchEnd(event) {
-    if (draggedId.value !== null && dragOverIndex.value !== null) {
-        dropRow(dragOverIndex.value);
-    } else {
-        endDrag();
-    }
-}
-
-function endDrag() {
-  draggedIndex.value = null;
-  draggedId.value = null;
-  dragOverIndex.value = null;
-  dragOverId.value = null;
-}
-
+const props = defineProps({ guests:Array, totalTamu:Number, tamuCpw:Number, tamuCpp:Number, tamuUmum:Number, hadir:Number, namaCpw:String, namaCpp:String });
+const localGuests=ref([...props.guests]),search=ref(''),filterPihak=ref(''),filterStatus=ref(''),mobileFiltersOpen=ref(false),showDrawer=ref(false),editGuest=ref(null),copyGuest=ref(null),saving=ref(false),draggedIndex=ref(null),draggedId=ref(null),dragOverIndex=ref(null),dragOverId=ref(null);
+const defaultForm=()=>({nama_tamu:'',pihak:'cpw',status:'belum_dikirim',catatan:''}),form=ref(defaultForm());
+watch(()=>props.guests,v=>localGuests.value=[...v]);watch(showDrawer,v=>document.body.style.overflow=v?'hidden':'');
+onMounted(()=>window.addEventListener('keydown',handleKey));onBeforeUnmount(()=>{window.removeEventListener('keydown',handleKey);document.body.style.overflow=''});function handleKey(e){if(e.key==='Escape'&&showDrawer.value)closeDrawer()}
+const attendancePct=computed(()=>props.totalTamu?Math.round(props.hadir/props.totalTamu*100):0),hasFilters=computed(()=>Boolean(search.value||filterPihak.value||filterStatus.value));
+const filteredGuests=computed(()=>{const q=search.value.trim().toLowerCase();return localGuests.value.filter(g=>(!q||g.nama_tamu?.toLowerCase().includes(q)||g.catatan?.toLowerCase().includes(q))&&(!filterPihak.value||g.pihak===filterPihak.value)&&(!filterStatus.value||g.status===filterStatus.value))});
+const filteredHadir=computed(()=>filteredGuests.value.filter(g=>g.status==='hadir').length);
+const canDragRows=computed(()=>!hasFilters.value);const pihakLabel=v=>({cpw:'CPW',cpp:'CPP',umum:'Umum'}[v]||'Umum');const pihakChipClass=v=>v==='cpw'?'chip--cpw':v==='cpp'?'chip--cpp':'chip--neutral';const statusLabel=v=>({belum_dikirim:'Belum Dikirim',sudah_dikirim:'Sudah Dikirim',hadir:'Konfirmasi Hadir',tidak_hadir:'Tidak Hadir'}[v]||v);const statusChipClass=v=>v==='hadir'?'chip--ok':v==='tidak_hadir'?'chip--danger':v==='sudah_dikirim'?'chip--warn':'chip--soft';
+function resetFilters(){search.value='';filterPihak.value='';filterStatus.value=''}function guestForm(g){return{nama_tamu:g.nama_tamu,pihak:g.pihak,status:g.status,catatan:g.catatan||''}}function openCreate(){editGuest.value=null;copyGuest.value=null;form.value=defaultForm();showDrawer.value=true}function openCopy(g){editGuest.value=null;copyGuest.value=g;form.value=guestForm(g);showDrawer.value=true}function openEdit(g){editGuest.value=g;copyGuest.value=null;form.value=guestForm(g);showDrawer.value=true}function closeDrawer(){showDrawer.value=false;editGuest.value=null;copyGuest.value=null}
+function save(){if(saving.value)return;saving.value=true;const editing=editGuest.value;router[editing?'patch':'post'](editing?route('tamu.update',editing.id):route('tamu.store'),form.value,{preserveScroll:true,onSuccess:()=>{showToast(editing?'Tamu berhasil diperbarui.':copyGuest.value?'Salinan tamu berhasil ditambahkan.':'Tamu berhasil ditambahkan.');closeDrawer()},onFinish:()=>saving.value=false})}
+function confirmDelete(g){confirmDeleteDialog(()=>router.delete(route('tamu.destroy',g.id),{preserveScroll:true,onSuccess:()=>showToast('Tamu berhasil dihapus.')}),{title:'Hapus undangan ini?',description:`Undangan untuk “${g.nama_tamu}” akan dihapus permanen dari daftar undangan.`})}
+function rowClasses(g){return{'is-dragging':draggedId.value===g.id,'is-drop-before':dropPlacement(g.id)==='before','is-drop-after':dropPlacement(g.id)==='after','is-drag-disabled':!canDragRows.value}}function startDrag(g,index,e){if(!canDragRows.value)return;draggedIndex.value=index;draggedId.value=g.id;if(e?.dataTransfer)e.dataTransfer.effectAllowed='move'}function handleTouchStart(_,g,index){if(canDragRows.value)startDrag(g,index)}function handleTouchMove(e){if(draggedId.value===null)return;e.preventDefault();const row=document.elementFromPoint(e.touches[0].clientX,e.touches[0].clientY)?.closest('.record-card,tr.draggable-row');if(!row)return;const cards=[...document.querySelectorAll('.mobile-records .record-card')],index=cards.includes(row)?cards.indexOf(row):[...row.parentNode.children].indexOf(row),item=filteredGuests.value[index];if(item)setDragOver(item,index)}function handleTouchEnd(){dragOverIndex.value!==null?dropRow(dragOverIndex.value):endDrag()}function setDragOver(g,index){if(canDragRows.value&&draggedId.value!==g.id){dragOverId.value=g.id;dragOverIndex.value=index}}function dropPlacement(id){if(dragOverId.value!==id)return null;return dragOverIndex.value>draggedIndex.value?'after':'before'}
+function dropRow(index){if(!canDragRows.value||draggedIndex.value===null||index===draggedIndex.value){endDrag();return}const previous=[...localGuests.value],list=[...localGuests.value],[moved]=list.splice(draggedIndex.value,1);list.splice(index,0,moved);localGuests.value=list.map((g,i)=>({...g,no:i+1}));router.patch(route('tamu.reorder'),{ids:localGuests.value.map(g=>g.id)},{preserveScroll:true,onSuccess:()=>showToast('Urutan tamu berhasil disimpan.'),onError:()=>{localGuests.value=previous;showToast('Urutan tamu gagal disimpan.')}});endDrag()}function endDrag(){draggedIndex.value=draggedId.value=dragOverIndex.value=dragOverId.value=null}
+function exportToExcel(){if(!filteredGuests.value.length){showToast('Tidak ada data untuk diekspor.');return}const now=new Date(),rows=filteredGuests.value.map((g,i)=>[g.no||i+1,g.nama_tamu||'',pihakLabel(g.pihak),statusLabel(g.status),g.catatan||'']),ws=XLSX.utils.aoa_to_sheet([['DAFTAR TAMU UNDANGAN'],[`Dicetak pada: ${now.toLocaleString('id-ID')}`],[],['No','Nama Tamu','Pihak','Status Undangan','Catatan'],...rows]);ws['!merges']=[{s:{r:0,c:0},e:{r:0,c:4}},{s:{r:1,c:0},e:{r:1,c:4}}];ws['!cols']=[{wch:5},{wch:30},{wch:24},{wch:22},{wch:40}];const wb=XLSX.utils.book_new();XLSX.utils.book_append_sheet(wb,ws,'Daftar Undangan');XLSX.writeFile(wb,`Daftar_Undangan_${now.toISOString().split('T')[0]}.xlsx`);showToast('Data berhasil diekspor ke Excel.')}
+const EmptyState=defineComponent({props:{filtered:Boolean},emits:['create','reset'],setup(p,{emit}){return()=>h('div',{class:'empty-card'},[h(UsersRound),h('h2',p.filtered?'Tamu tidak ditemukan':'Belum ada tamu undangan'),h('p',p.filtered?'Tidak ada tamu yang sesuai dengan pencarian atau filter.':'Mulai susun daftar orang terkasih yang akan diundang.'),h('button',{type:'button',class:p.filtered?'secondary-action':'primary-action',onClick:()=>emit(p.filtered?'reset':'create')},[h(p.filtered?X:Plus),p.filtered?'Reset Filter':'Tambah Tamu Pertama'])])}});
 </script>
 
 <style scoped>
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: var(--space-md);
-  margin-bottom: var(--space-xl);
-}
-@media (min-width: 640px) { .summary-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (min-width: 1024px) { .summary-grid { grid-template-columns: repeat(4, 1fr); } }
-
-.summary-card { padding: var(--space-xl); }
-.summary-card__label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: none;
-  letter-spacing: 0.02em;
-}
-.summary-card__value {
-  font-size: 22px;
-  font-weight: 800;
-  color: var(--text);
-  margin-top: 6px;
-  letter-spacing: -0.02em;
-}
-.summary-card__sub { font-size: 11.5px; color: var(--text-muted); margin-top: 4px; }
-
-.toolbar {
-  display: flex;
-  align-items: center;
-  gap: var(--space-sm);
-  flex-wrap: wrap;
-  margin-bottom: var(--space-lg);
-}
-.toolbar__search {
-  position: relative;
-  flex: 1;
-  min-width: 180px;
-}
-.search-icon {
-  position: absolute;
-  left: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-dim);
-  font-size: 12px;
-  pointer-events: none;
-}
-.search-input { padding-left: 30px; }
-.toolbar__select { max-width: 180px; }
-@media (max-width: 640px) { .toolbar__select { max-width: none; width: 100%; } }
-
-.draggable-row { cursor: grab; position: relative; transition: background 0.18s ease, opacity 0.18s ease, transform 0.18s ease, box-shadow 0.18s ease; }
-.draggable-row.is-dragging { opacity: 0.45; transform: scale(0.995); }
-.draggable-row.is-drop-target { background: var(--rose-pale); box-shadow: inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
-.draggable-row.is-drop-before { box-shadow: inset 0 3px 0 var(--rose), inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
-.draggable-row.is-drop-after { box-shadow: inset 0 -3px 0 var(--rose), inset 0 0 0 1px rgba(199, 121, 141, 0.18); }
-.draggable-row.is-drop-before td:first-child::before,
-.draggable-row.is-drop-after td:first-child::after { content: ''; position: absolute; left: 10px; width: 8px; height: 8px; border-radius: 999px; background: var(--rose); box-shadow: 0 0 0 3px var(--rose-pale); }
-.draggable-row.is-drop-before td:first-child::before { top: -4px; }
-.draggable-row.is-drop-after td:first-child::after { bottom: -4px; }
-.draggable-row.is-drag-disabled { cursor: default; }
-.drag-cell { white-space: nowrap; touch-action: none; padding: 12px; cursor: grab; }
-.drag-cell i { color: var(--text-dim); margin-right: 6px; font-size: 16px; }
-.is-drag-disabled .drag-cell i { opacity: 0.35; }
-.mono-text { font-family: monospace; font-size: 11px; color: var(--text-dim); }
-
-.guest-name { font-weight: 500; color: var(--text); }
-
-.form-row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-md); }
-@media (max-width: 480px) { .form-row-2 { grid-template-columns: 1fr; } }
-
-.chip--cpw   { background: #fdf0f8; color: #c4719e; border: 1px solid #f0c8e4; }
-.chip--cpp   { background: #eef4ff; color: #5a82c4; border: 1px solid #c8d8f0; }
+.guest-page{display:grid;gap:18px;padding-bottom:24px}.hero-card{display:flex;min-height:190px;padding:34px 38px;align-items:center;justify-content:space-between;gap:28px;border:1px solid var(--border);border-radius:20px;background:radial-gradient(circle at 90% 20%,rgba(111,146,95,.24),transparent 34%),linear-gradient(135deg,#fff,#eef4e8)}.eyebrow{display:block;margin-bottom:7px;color:var(--accent-hover);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}.hero-card h1{font-family:var(--font-display);font-size:clamp(28px,3vw,38px);line-height:1.15}.hero-card p{margin-top:9px;color:var(--text-muted);font-size:14px}.primary-action,.secondary-action,.icon-action,.filter-toggle,.drag-handle{display:inline-flex;align-items:center;justify-content:center;border:0;font:inherit;cursor:pointer}.primary-action{min-height:43px;padding:10px 16px;gap:8px;border-radius:10px;background:var(--accent);color:#fff;font-size:12.5px;font-weight:700}.primary-action:hover{background:var(--accent-hover)}.primary-action:disabled{opacity:.65;cursor:wait}.primary-action svg,.secondary-action svg{width:16px}.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.summary-card{display:flex;min-width:0;padding:18px 20px;gap:14px;border:1px solid var(--border);border-radius:12px;background:var(--surface);box-shadow:var(--shadow-sm)}.summary-icon{display:flex;width:38px;height:38px;align-items:center;justify-content:center;flex:none;border-radius:10px;background:var(--accent-soft);color:var(--accent-hover)}.summary-icon svg{width:20px}.summary-icon--cpw{background:#fdf0f8;color:#c4719e}.summary-icon--cpp{background:#eef4ff;color:#5a82c4}.summary-icon--ok{background:var(--ok-bg);color:var(--ok-text)}.summary-label{font-size:12px;font-weight:600;color:var(--text-muted)}.summary-value{margin-top:5px;font-size:clamp(19px,2vw,25px);font-weight:800}.summary-sub{margin-top:4px;color:var(--text-muted);font-size:11.5px}.progress-track{height:6px;margin-top:7px;overflow:hidden;border-radius:99px;background:var(--surface-muted)}.progress-track span{display:block;height:100%;background:linear-gradient(90deg,var(--accent-hover),var(--accent-light))}.data-panel{overflow:hidden;border:1px solid var(--border);border-radius:14px;background:var(--surface);box-shadow:var(--shadow-sm)}.toolbar{display:flex;padding:12px;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border)}.toolbar-top{display:flex;flex:1}.search-wrap{position:relative;flex:1}.search-wrap>svg{position:absolute;left:13px;top:50%;width:16px;transform:translateY(-50%);color:var(--text-dim)}.toolbar-control,.secondary-action{box-sizing:border-box;height:40px;min-height:40px;padding:0 12px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--text-muted);font:500 12.5px var(--font);line-height:1}.search-wrap input{width:100%;padding-left:39px}.toolbar-filters{display:flex;gap:8px}.select-wrap{position:relative;display:flex}.select-wrap select{width:180px;padding-right:34px;appearance:none}.select-wrap>svg{position:absolute;right:11px;top:50%;width:15px;transform:translateY(-50%);pointer-events:none}.secondary-action{gap:7px}.filter-toggle{display:none;position:relative;width:44px;height:44px;border:1px solid var(--border);border-radius:9px;background:var(--surface);color:var(--text-muted)}.filter-toggle svg{width:19px}.filter-toggle span{position:absolute;top:7px;right:7px;width:6px;height:6px;border-radius:50%;background:var(--accent)}.filter-toggle.active{background:var(--accent-soft);color:var(--accent-hover)}.desktop-table{overflow-x:auto}.tbl{width:100%;border-collapse:collapse}.tbl th{height:42px;padding:0 12px;background:var(--surface-muted);color:var(--text-muted);font-size:10.5px;font-weight:700;letter-spacing:.055em;text-transform:uppercase}.tbl td{padding:12px;border-bottom:1px solid var(--border);font-size:12px}.tbl tfoot td{background:var(--surface-muted);color:var(--text-muted);font-weight:700}.center{text-align:center}.note{max-width:240px;color:var(--text-muted)}.chip--cpw{background:#fdf0f8;color:#c4719e}.chip--cpp{background:#eef4ff;color:#5a82c4}.party-chip,.party-label{display:inline-flex;align-items:center;gap:4px}.party-chip svg,.party-label svg{width:13px;height:13px;flex:none}.actions{display:flex;justify-content:center}.icon-action{width:36px;height:36px;border-radius:8px;background:transparent;color:var(--text-dim)}.icon-action:hover{background:var(--accent-soft);color:var(--accent-hover)}.icon-action.danger:hover{background:var(--danger-bg);color:var(--danger-text)}.icon-action svg{width:15px}.drag-cell{white-space:nowrap;touch-action:none;color:var(--text-dim);cursor:grab}.drag-cell svg{display:inline;width:16px;margin-right:4px;vertical-align:middle;color:var(--text-dim);opacity:.62;stroke-width:1.8}.is-drag-disabled .drag-cell svg{opacity:.28}.draggable-row.is-dragging{opacity:.45}.draggable-row.is-drop-before{box-shadow:inset 0 3px var(--accent)}.draggable-row.is-drop-after{box-shadow:inset 0 -3px var(--accent)}.is-drag-disabled .drag-cell{opacity:.4;cursor:default}.mobile-records{display:none}.empty-card{display:flex;min-height:250px;padding:32px;align-items:center;justify-content:center;flex-direction:column;text-align:center}.empty-card>svg{width:42px;color:var(--accent)}.empty-card h2{margin-top:12px;font-size:16px}.empty-card p{margin:6px 0 17px;color:var(--text-muted);font-size:12px}.drawer-backdrop{position:fixed;inset:0;z-index:1000;display:flex;justify-content:flex-end;background:rgba(34,45,37,.28);backdrop-filter:blur(2px);animation:drawerFade .2s ease}.drawer{display:flex;width:min(440px,100vw);height:100dvh;flex-direction:column;background:var(--surface);box-shadow:-18px 0 48px rgba(40,54,44,.16);animation:drawerFromRight .25s ease}.drawer-handle{display:none}.drawer-header{display:flex;min-height:86px;padding:20px 22px;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}.drawer-header h3{font-family:var(--font-display);font-size:18px}.drawer-body{display:flex;min-height:0;padding:22px;gap:16px;flex:1;flex-direction:column;overflow:auto}.field{display:grid;gap:7px}.field label{font-size:12.5px;font-weight:650}.field label span{color:var(--accent)}.field-control{position:relative;display:flex;align-items:center;border:1px solid var(--border);border-radius:10px;background:#fbfcfa}.field-control:focus-within{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}.field-control>svg{position:absolute;left:13px;width:17px;color:#7a8b7e}.field-control>svg:last-child:not(:first-child){left:auto;right:13px;width:15px}.field-control input,.field-control select,.field-control textarea{width:100%;padding:10px 40px;border:0!important;background:transparent!important;box-shadow:none!important;font:500 13px var(--font)}.field-control input,.field-control select{min-height:46px}.field-control select{appearance:none}.field-control.textarea{align-items:flex-start}.field-control.textarea>svg{top:11px;width:17px;height:17px}.field-control.textarea textarea{line-height:19px}.drawer-footer{display:flex;justify-content:flex-end;gap:9px;margin:auto -22px -22px;padding:18px 22px 22px;border-top:1px solid var(--border)}.spinner{animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}@keyframes drawerFromRight{from{transform:translateX(100%)}}@keyframes drawerFromBottom{from{transform:translateY(100%)}}
+@media(max-width:900px){.summary-grid{grid-template-columns:1fr 1fr}.toolbar{align-items:stretch;flex-direction:column}.toolbar-filters{width:100%}}
+@media(max-width:767px){.guest-page{gap:14px}.hero-card{min-height:auto;padding:18px 16px;align-items:stretch;flex-direction:column;gap:14px}.hero-card h1{font-size:25px}.hero-card p{font-size:12.5px}.hero-card .primary-action{width:100%}.summary-grid{gap:8px}.summary-card{padding:13px;gap:9px}.summary-icon{width:34px;height:34px}.summary-value{font-size:18px}.data-panel{overflow:visible;border:0;background:transparent;box-shadow:none}.toolbar{display:block;padding:12px;border:1px solid var(--border);border-radius:12px;background:var(--surface)}.toolbar-top{gap:8px}.toolbar-control,.secondary-action{height:44px;min-height:44px}.filter-toggle{display:flex}.toolbar-filters{display:none;grid-template-columns:1fr 1fr;margin-top:10px;padding-top:10px;border-top:1px solid var(--border)}.toolbar-filters.open{display:grid}.toolbar-filters>*{width:100%}.select-wrap select{width:100%}.export-action{grid-column:1/-1}.desktop-table{display:none}.mobile-records{display:grid;gap:10px;margin-top:14px}.record-card{padding:14px;border:1px solid var(--border);border-left:4px solid var(--text-dim);border-radius:12px;background:var(--surface);box-shadow:var(--shadow-sm)}.record-card.chip--ok{border-left-color:var(--ok-text)}.record-card.chip--danger{border-left-color:var(--danger-text)}.record-card.chip--warn{border-left-color:var(--warn-text)}.record-head{display:flex;justify-content:space-between;gap:8px}.record-head h2{margin-top:6px;font-size:14px}.category{color:var(--text-muted);font-size:10.5px}.record-card dl{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:13px;padding:11px 0;border-block:1px solid var(--border)}.record-card dt{color:var(--text-muted);font-size:10px}.record-card dd{margin-top:3px;font-size:11.5px;font-weight:700}.record-note{margin-top:10px;color:var(--text-muted);font-size:11.5px}.record-footer{display:flex;margin-top:8px;align-items:center;justify-content:space-between}.drag-handle{gap:5px;padding:8px;background:none;color:var(--text-muted);font-size:11px;touch-action:none}.drag-handle svg{width:15px}.drawer-backdrop{align-items:flex-end}.drawer{width:100%;height:auto;max-height:92dvh;border-radius:20px 20px 0 0;animation:drawerFromBottom .25s ease}.drawer-handle{display:block;width:40px;height:4px;margin:9px auto 0;border-radius:99px;background:var(--border)}.drawer-header{min-height:68px;padding:10px 16px 13px}.drawer-body{padding:16px 16px calc(16px + env(safe-area-inset-bottom))}.field-control input,.field-control select,.field-control textarea{font-size:16px}.drawer-footer{position:sticky;bottom:calc(-16px - env(safe-area-inset-bottom));margin:auto -16px calc(-16px - env(safe-area-inset-bottom));padding:12px 16px calc(16px + env(safe-area-inset-bottom));background:var(--surface)}.drawer-footer>*{flex:1}}
+@media(prefers-reduced-motion:reduce){.drawer,.draggable-row,.primary-action,.icon-action,.progress-track span{animation:none!important;transition:none!important}}.primary-action:focus-visible,.secondary-action:focus-visible,.icon-action:focus-visible,.filter-toggle:focus-visible,.drag-handle:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 </style>

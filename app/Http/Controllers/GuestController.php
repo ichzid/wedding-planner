@@ -59,6 +59,9 @@ class GuestController extends Controller
 
     public function update(Request $request, WeddingGuest $tamu)
     {
+        $wedding = $this->getWedding();
+        abort_unless($tamu->wedding_id === $wedding->id, 404);
+
         $data = $request->validate([
             'nama_tamu' => 'required|string|max:255',
             'pihak'     => 'required|in:cpw,cpp,umum',
@@ -90,6 +93,9 @@ class GuestController extends Controller
 
     public function destroy(WeddingGuest $tamu)
     {
+        $wedding = $this->getWedding();
+        abort_unless($tamu->wedding_id === $wedding->id, 404);
+
         $tamu->delete();
         return redirect()->route('tamu.index');
     }

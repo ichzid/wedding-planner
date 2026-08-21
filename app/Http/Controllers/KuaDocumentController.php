@@ -94,15 +94,15 @@ class KuaDocumentController extends Controller
         return redirect()->route('dokumen-kua.index');
     }
 
-    public function toggleCpw(KuaDocument $kuaDocument)
+    public function toggleCpw(KuaDocument $dokumen_kua)
     {
-        $kuaDocument->update(['cpw_status' => !$kuaDocument->cpw_status]);
+        $dokumen_kua->update(['cpw_status' => !$dokumen_kua->cpw_status]);
         return redirect()->route('dokumen-kua.index');
     }
 
-    public function toggleCpp(KuaDocument $kuaDocument)
+    public function toggleCpp(KuaDocument $dokumen_kua)
     {
-        $kuaDocument->update(['cpp_status' => !$kuaDocument->cpp_status]);
+        $dokumen_kua->update(['cpp_status' => !$dokumen_kua->cpp_status]);
         return redirect()->route('dokumen-kua.index');
     }
 }

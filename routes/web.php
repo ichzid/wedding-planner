@@ -11,8 +11,16 @@ use App\Http\Controllers\OnboardingController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return redirect()->route('login');
-});
+    return inertia('Welcome');
+})->name('home');
+
+Route::get('/budget-estimator', function () {
+    return inertia('BudgetEstimator');
+})->name('budget-estimator');
+
+Route::get('/onboarding-preview', function () {
+    return inertia('Onboarding/Index', ['preview' => true]);
+})->name('onboarding.preview');
 
 // Autentikasi rute-rute menggunakan middleware auth
 Route::middleware(['auth'])->group(function () {
