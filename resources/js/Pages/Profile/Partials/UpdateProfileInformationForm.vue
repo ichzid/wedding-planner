@@ -1,4 +1,5 @@
 <script setup>
+import { computed, ref } from 'vue';
 import InputError from '@/Components/InputError.vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
 import { LoaderCircle, Mail, MapPin, Phone, UserRound } from '@lucide/vue';
@@ -6,6 +7,18 @@ import { showToast } from '@/utils.js';
 
 defineProps({ mustVerifyEmail: Boolean, status: String });
 const user = usePage().props.auth.user;
+const avatarFailed = ref(false);
+const userInitials = computed(() => {
+    const nameParts = user.name?.trim().split(/\s+/).filter(Boolean) || [];
+
+    if (!nameParts.length) return 'U';
+
+    return [nameParts[0], nameParts.at(-1)]
+        .slice(0, nameParts.length > 1 ? 2 : 1)
+        .map((part) => part.charAt(0))
+        .join('')
+        .toUpperCase();
+});
 const form = useForm({
     name: user.name,
     email: user.email,
@@ -27,6 +40,21 @@ const submitProfile = () => {
             <h2 class="section-title">Profil Akun</h2>
             <p class="section-description">Perbarui identitas dan informasi kontak yang digunakan pada akun Anda.</p>
         </header>
+
+        <div class="account-avatar">
+            <img
+                v-if="user.avatar && !avatarFailed"
+                :src="user.avatar"
+                :alt="`Foto profil ${user.name}`"
+                class="account-avatar__image"
+                @error="avatarFailed = true"
+            />
+            <span v-else class="account-avatar__fallback" aria-hidden="true">{{ userInitials }}</span>
+            <div>
+                <strong>Foto Profil</strong>
+                <p>{{ user.avatar ? 'Foto dari akun Google Anda.' : 'Avatar inisial dibuat otomatis dari nama Anda.' }}</p>
+            </div>
+        </div>
 
         <form @submit.prevent="submitProfile">
             <div class="form-field">
@@ -80,3 +108,51 @@ const submitProfile = () => {
         </form>
     </section>
 </template>
+
+<style scoped>
+.account-avatar {
+    display: flex;
+    margin-top: 24px;
+    padding: 14px;
+    align-items: center;
+    gap: 14px;
+    border: 1px solid #d4ccd4;
+    border-radius: 12px;
+    background: #fffafd;
+}
+
+.account-avatar__image,
+.account-avatar__fallback {
+    width: 58px;
+    height: 58px;
+    flex: none;
+    border: 1px solid #6d526d;
+    border-radius: 50%;
+}
+
+.account-avatar__image {
+    object-fit: cover;
+}
+
+.account-avatar__fallback {
+    display: grid;
+    background: #ffbdd3;
+    color: #240029;
+    font-size: 18px;
+    font-weight: 800;
+    place-items: center;
+}
+
+.account-avatar strong {
+    display: block;
+    color: #240029;
+    font-size: 14px;
+}
+
+.account-avatar p {
+    margin: 4px 0 0;
+    color: #6d526d;
+    font-size: 12px;
+    line-height: 1.5;
+}
+</style>

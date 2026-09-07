@@ -16,7 +16,11 @@ class DashboardController extends Controller
         $totalChecklist    = $wedding->checklists->count();
         $doneChecklist     = $wedding->checklists->where('status', true)->count();
         $progressChecklist = $totalChecklist > 0 ? round($doneChecklist / $totalChecklist * 100) : 0;
-        $pendingChecklists = $wedding->checklists->where('status', false)->take(3)->values();
+        $pendingChecklists = $wedding->checklists
+            ->where('status', false)
+            ->sortBy('no')
+            ->take(5)
+            ->values();
 
         // Budget stats
         $totalEstimasi  = $wedding->budgets->sum('estimasi_budget');

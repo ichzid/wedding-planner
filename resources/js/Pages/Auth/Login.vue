@@ -50,8 +50,8 @@ const submit = () => form.post(route('login'), { onFinish: () => form.reset('pas
         </form>
 
         <div class="social-divider"><span>Atau lanjutkan dengan</span></div>
-        <div class="social-login" aria-label="Pilihan login sosial segera hadir">
-            <button type="button" class="social-button social-button--google" disabled>
+        <div class="social-login" aria-label="Pilihan login sosial">
+            <a :href="route('auth.google')" class="social-button social-button--google">
                 <svg aria-hidden="true" viewBox="0 0 48 48">
                     <path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303C33.654 32.657 29.223 36 24 36c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917Z"/>
                     <path fill="#FF3D00" d="m6.306 14.691 6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4c-7.682 0-14.344 4.337-17.694 10.691Z"/>
@@ -59,7 +59,7 @@ const submit = () => form.post(route('login'), { onFinish: () => form.reset('pas
                     <path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 0 1-4.087 5.571l6.193 5.237C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917Z"/>
                 </svg>
                 <span>Lanjutkan dengan Google</span>
-            </button>
+            </a>
             <button type="button" class="social-button social-button--apple" disabled>
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor">
                     <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.79 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.09ZM12.03 7.25C11.88 5.02 13.69 3.18 15.77 3c.29 2.58-2.34 4.5-3.74 4.25Z"/>
@@ -77,12 +77,12 @@ const submit = () => form.post(route('login'), { onFinish: () => form.reset('pas
 
 <style scoped>
 .login-header { margin-bottom:27px; }
-.login-eyebrow { margin:0 0 8px; color:var(--accent); font-size:10.5px; font-weight:750; letter-spacing:.13em; text-transform:uppercase; }
-.login-header > p:last-child { margin:9px 0 0; color:var(--text-muted); font-size:12.5px; line-height:1.6; }
+.login-eyebrow { margin:0 0 8px; color:var(--accent); font-size:11px; font-weight:700; letter-spacing:.13em; text-transform:uppercase; }
+.login-header > p:last-child { margin:9px 0 0; color:var(--text-muted); font-size:13px; line-height:1.6; }
 .login-status { margin-bottom:18px; padding:11px 13px; border:1px solid var(--ok-border); border-radius:10px; background:var(--ok-bg); color:var(--ok-text); font-size:12px; line-height:1.5; }
 .login-form { display:flex; flex-direction:column; gap:13px; }
 .login-field { display:flex; flex-direction:column; gap:7px; }
-.login-field label,.login-label-row label { color:var(--text); font-size:12px; font-weight:650; }
+.login-field label,.login-label-row label { color:var(--text); font-size:12px; font-weight:600; }
 .login-field label span { color:var(--accent); }
 .login-field--password { position:relative; }
 .login-field--password > label { padding-right:112px; }
@@ -93,20 +93,23 @@ const submit = () => form.post(route('login'), { onFinish: () => form.reset('pas
 .login-input :deep(input.form-input.password-input) { padding-right:44px!important; }
 .login-input :deep(button) { right:2px; width:42px; justify-content:center; padding:0; border:0; background:transparent; color:var(--text-dim); cursor:pointer; }
 .login-input :deep(button svg) { width:17px; height:17px; }
-.login-link { color:var(--accent); font-size:11.5px; font-weight:650; text-decoration:none; }
+.login-link { color:var(--accent); font-size:12px; font-weight:600; text-decoration:none; }
 .login-link:hover { color:var(--accent-hover); text-decoration:underline; }
 .login-link:focus-visible { outline:2px solid var(--accent); outline-offset:3px; border-radius:3px; }
 .login-form > .btn-primary { margin-top:7px; }
 .btn-primary svg { width:16px; height:16px; }
 .login-spinner { animation:loginSpin .7s linear infinite; }
-.social-divider { display:flex; align-items:center; gap:12px; margin:18px 0; color:var(--text-dim); font-size:10.5px; white-space:nowrap; }
+.social-divider { display:flex; align-items:center; gap:12px; margin:18px 0; color:var(--text-dim); font-size:11px; white-space:nowrap; }
 .social-divider::before,.social-divider::after { content:''; flex:1; height:1px; background:var(--border); }
 .social-login { display:flex; flex-direction:column; gap:9px; }
 .social-button { display:flex; align-items:center; justify-content:center; gap:9px; min-height:44px; padding:0 18px; border:1px solid var(--border-strong); border-radius:10px; background:var(--surface); color:var(--text); opacity:1; cursor:not-allowed; }
 .social-button > svg { width:18px; height:18px; flex:none; }
-.social-button span { font-size:11.5px; font-weight:650; line-height:1.2; }
+.social-button span { font-size:12px; font-weight:600; line-height:1.2; }
+.social-button:disabled { cursor:not-allowed; }
+.social-button--google:hover { border-color:#a99da9; background:#fff; box-shadow:0 3px 10px rgba(32,0,36,.08); text-decoration:none; }
+.social-button--google:focus-visible { outline:2px solid #a99da9; outline-offset:2px; text-decoration:none; }
 .social-button--apple { border-color:#20231f; background:#20231f; color:#fff; }
-.login-register { margin:22px 0 0; padding-top:19px; border-top:1px solid var(--border); color:var(--text-muted); font-size:11.5px; text-align:center; }
+.login-register { margin:22px 0 0; padding-top:19px; border-top:1px solid var(--border); color:var(--text-muted); font-size:12px; text-align:center; }
 .login-eyebrow { display:inline-flex; padding:5px 8px; border:1px solid #1a3300; border-radius:6px; background:#f6d0ff; color:#1a3300; }
 .login-header > p:last-child { color:rgba(26,51,0,.68); font-size:13px; }
 .login-field label,.login-label-row label { color:#1a3300; }
@@ -127,4 +130,31 @@ const submit = () => form.post(route('login'), { onFinish: () => form.reset('pas
   .login-form { gap:13px; }
 }
 @media(prefers-reduced-motion:reduce) { .login-spinner { animation:none; } }
+.login-header > p:last-child,.login-status,.login-field label,.login-label-row label,.login-link,.social-button span,.login-register { font-size:14px; }
+.social-divider { font-size:11px; }
+@media(max-width:480px) { .login-header > p:last-child { font-size:14px; white-space:normal; } }
+
+/* Sunset Marketplace */
+.login-header h2 { color:#240029; font-family:'Bricolage Grotesque','Inter',ui-sans-serif,sans-serif; font-weight:800; letter-spacing:-.03em; }
+.login-header > p:last-child { color:#6d526d; }
+.login-status { border-color:#bbf7d0; border-radius:999px; background:#dcfce7; color:#15803d; }
+.login-field label,.login-label-row label { color:#240029; }
+.login-field label span { color:#df37a7; }
+.login-input > svg { color:#6d526d; }
+.login-input:focus-within > svg { color:#df37a7; }
+.login-input :deep(button) { color:#6d526d; }
+.login-input :deep(button:hover) { color:#240029; }
+.login-link { color:#6d526d; text-decoration:underline; text-decoration-color:rgba(223,55,167,.48); text-decoration-thickness:1px; text-underline-offset:4px; }
+.login-link:hover { color:#df37a7; text-decoration-color:#df37a7; }
+.login-link:focus-visible { outline-color:#df37a7; }
+.social-divider { color:#6d526d; }
+.social-divider::before,.social-divider::after { background:#d4ccd4; }
+.social-button { border-color:#d4ccd4; border-radius:6px; background:#fff; color:#240029; }
+a.social-button--google,
+a.social-button--google:link,
+a.social-button--google:visited,
+a.social-button--google:hover,
+a.social-button--google:active { cursor:pointer; text-decoration:none !important; }
+.social-button--apple { border-color:#240029; background:#240029; color:#fff; }
+.login-register { border-top-color:#d4ccd4; color:#6d526d; }
 </style>

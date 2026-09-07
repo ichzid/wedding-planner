@@ -29,9 +29,6 @@ class OnboardingController extends Controller
         }
 
         $validated = $request->validate([
-            'nama_cpw' => 'required|string|max:255',
-            'nama_cpp' => 'required|string|max:255',
-            'tanggal_nikah' => 'required|date',
             'setup_type' => 'required|in:manual,auto',
             'budget' => 'nullable|numeric|min:0',
         ]);
@@ -41,9 +38,9 @@ class OnboardingController extends Controller
             // 1. Create the Wedding base record
             $wedding = Wedding::create([
                 'user_id' => auth()->id(),
-                'nama_cpw' => $validated['nama_cpw'],
-                'nama_cpp' => $validated['nama_cpp'],
-                'tanggal_nikah' => $validated['tanggal_nikah'],
+                'nama_cpw' => 'Calon Pengantin Wanita',
+                'nama_cpp' => 'Calon Pengantin Pria',
+                'tanggal_nikah' => now()->addYear()->toDateString(),
             ]);
 
             // 2. Generate Automatic Data if setup_type == 'auto'

@@ -31,22 +31,22 @@ Route::middleware(['auth'])->group(function () {
 
     // Main App Routes (membutuhkan data Wedding)
     Route::middleware([\App\Http\Middleware\EnsureUserHasWedding::class])->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+        Route::get('/ringkasan', [DashboardController::class, 'index'])->name('dashboard');
 
         // Budgets
-        Route::get('/budget', [BudgetController::class, 'index'])->name('budget.index');
-        Route::post('/budget', [BudgetController::class, 'store'])->name('budget.store');
-        Route::patch('/budget/reorder', [BudgetController::class, 'reorder'])->name('budget.reorder');
-        Route::patch('/budget/{budget}', [BudgetController::class, 'update'])->name('budget.update');
-        Route::delete('/budget/{budget}', [BudgetController::class, 'destroy'])->name('budget.destroy');
+        Route::get('/anggaran', [BudgetController::class, 'index'])->name('budget.index');
+        Route::post('/anggaran', [BudgetController::class, 'store'])->name('budget.store');
+        Route::patch('/anggaran/reorder', [BudgetController::class, 'reorder'])->name('budget.reorder');
+        Route::patch('/anggaran/{budget}', [BudgetController::class, 'update'])->name('budget.update');
+        Route::delete('/anggaran/{budget}', [BudgetController::class, 'destroy'])->name('budget.destroy');
 
         // Checklists
-        Route::get('/checklist', [ChecklistController::class, 'index'])->name('checklist.index');
-        Route::post('/checklist', [ChecklistController::class, 'store'])->name('checklist.store');
-        Route::patch('/checklist/reorder', [ChecklistController::class, 'reorder'])->name('checklist.reorder');
-        Route::patch('/checklist/{checklist}', [ChecklistController::class, 'update'])->name('checklist.update');
-        Route::delete('/checklist/{checklist}', [ChecklistController::class, 'destroy'])->name('checklist.destroy');
-        Route::patch('/checklist/{checklist}/toggle', [ChecklistController::class, 'toggle'])->name('checklist.toggle');
+        Route::get('/daftar-persiapan', [ChecklistController::class, 'index'])->name('checklist.index');
+        Route::post('/daftar-persiapan', [ChecklistController::class, 'store'])->name('checklist.store');
+        Route::patch('/daftar-persiapan/reorder', [ChecklistController::class, 'reorder'])->name('checklist.reorder');
+        Route::patch('/daftar-persiapan/{checklist}', [ChecklistController::class, 'update'])->name('checklist.update');
+        Route::delete('/daftar-persiapan/{checklist}', [ChecklistController::class, 'destroy'])->name('checklist.destroy');
+        Route::patch('/daftar-persiapan/{checklist}/toggle', [ChecklistController::class, 'toggle'])->name('checklist.toggle');
 
         // Seserahan
         Route::get('/seserahan', [SeserahanController::class, 'index'])->name('seserahan.index');
@@ -62,22 +62,34 @@ Route::middleware(['auth'])->group(function () {
         Route::patch('/dokumen-kua/reorder', [KuaDocumentController::class, 'reorder'])->name('dokumen-kua.reorder');
         Route::patch('/dokumen-kua/{dokumen_kua}', [KuaDocumentController::class, 'update'])->name('dokumen-kua.update');
         Route::delete('/dokumen-kua/{dokumen_kua}', [KuaDocumentController::class, 'destroy'])->name('dokumen-kua.destroy');
-        Route::patch('/dokumen-kua/{dokumen_kua}/toggle-cpw', [KuaDocumentController::class, 'toggleCpw'])->name('kua.toggle-cpw');
-        Route::patch('/dokumen-kua/{dokumen_kua}/toggle-cpp', [KuaDocumentController::class, 'toggleCpp'])->name('kua.toggle-cpp');
+        Route::patch('/dokumen-kua/{dokumen_kua}/status-cpw', [KuaDocumentController::class, 'toggleCpw'])->name('kua.toggle-cpw');
+        Route::patch('/dokumen-kua/{dokumen_kua}/status-cpp', [KuaDocumentController::class, 'toggleCpp'])->name('kua.toggle-cpp');
 
         // Guests
-        Route::get('/tamu', [GuestController::class, 'index'])->name('tamu.index');
-        Route::post('/tamu', [GuestController::class, 'store'])->name('tamu.store');
-        Route::patch('/tamu/reorder', [GuestController::class, 'reorder'])->name('tamu.reorder');
-        Route::patch('/tamu/{tamu}', [GuestController::class, 'update'])->name('tamu.update');
-        Route::delete('/tamu/{tamu}', [GuestController::class, 'destroy'])->name('tamu.destroy');
+        Route::get('/daftar-undangan', [GuestController::class, 'index'])->name('tamu.index');
+        Route::post('/daftar-undangan', [GuestController::class, 'store'])->name('tamu.store');
+        Route::patch('/daftar-undangan/reorder', [GuestController::class, 'reorder'])->name('tamu.reorder');
+        Route::patch('/daftar-undangan/{tamu}', [GuestController::class, 'update'])->name('tamu.update');
+        Route::delete('/daftar-undangan/{tamu}', [GuestController::class, 'destroy'])->name('tamu.destroy');
     });
 
+    Route::get('/paket-langganan', function () {
+        return inertia('Subscription/Index');
+    })->name('subscription.index');
+
+    Route::get('/pusat-bantuan', function () {
+        return inertia('Help/Index');
+    })->name('help.index');
+
+    Route::get('/hubungi-dukungan', function () {
+        return inertia('Support/Index');
+    })->name('support.index');
+
     // Profile Routes
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::patch('/profile/wedding', [ProfileController::class, 'updateWedding'])->name('profile.wedding.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+    Route::get('/pengaturan', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/pengaturan', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('/pengaturan/pernikahan', [ProfileController::class, 'updateWedding'])->name('profile.wedding.update');
+    Route::delete('/pengaturan', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
 require __DIR__.'/auth.php';
