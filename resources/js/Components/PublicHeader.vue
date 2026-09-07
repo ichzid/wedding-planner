@@ -58,9 +58,7 @@ defineProps({
             <div class="public-header__actions">
                 <Link v-if="$page.props.auth.user" :href="route('dashboard')" class="public-button public-button--ghost">Dashboard</Link>
                 <template v-else>
-                    <Link :href="route('login')" class="public-login">Masuk</Link>
-                    <a v-if="!estimator" href="/budget-estimator" class="public-button public-button--primary public-start">Mulai</a>
-                    <Link v-if="!estimator" :href="route('login')" class="public-button public-button--primary public-mobile-login">Login</Link>
+                    <Link v-if="!estimator" :href="route('login')" class="public-button public-button--primary">Login</Link>
                     <Link v-else :href="estimatorResult ? '/budget-estimator' : route('home')" class="public-button public-button--primary">Kembali</Link>
                 </template>
             </div>

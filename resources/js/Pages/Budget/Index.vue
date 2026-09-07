@@ -122,10 +122,18 @@
     </div>
 
     <section class="mobile-records" aria-label="Daftar anggaran">
-      <article v-for="b in filteredBudgets" :key="b.id" class="record-card" :class="`record-card--${b.status}`">
+      <article
+        v-for="(b, index) in filteredBudgets"
+        :key="b.id"
+        class="record-card draggable-row"
+        :class="[`record-card--${b.status}`, { 'is-dragging': draggedId === b.id, 'is-drop-before': dropPlacement(b.id) === 'before', 'is-drop-after': dropPlacement(b.id) === 'after' }]"
+        @touchmove="handleTouchMove"
+        @touchend="handleTouchEnd"
+        @touchcancel="endDrag"
+      >
         <div class="record-head"><div><span class="category-label"><span class="category-dot" :class="categoryDotClass(b.kategori)" aria-hidden="true"></span>{{ b.kategori }}</span><h2>{{ b.item }}</h2><p>{{ b.vendor || 'Vendor belum ditentukan' }}</p></div><span class="chip" :class="statusChip(b.status)">{{ statusLabel(b.status) }}</span></div>
         <dl class="record-amounts"><div><dt>Estimasi</dt><dd>{{ formatRp(b.estimasi_budget) }}</dd></div><div><dt>Terbayar</dt><dd>{{ formatRp((b.dp || 0) + (b.pelunasan || 0)) }}</dd></div><div><dt>Sisa</dt><dd :class="(b.estimasi_budget - b.dp - b.pelunasan) > 0 ? 'text-danger' : 'text-ok'">{{ formatRp(b.estimasi_budget - b.dp - b.pelunasan) }}</dd></div></dl>
-        <div class="record-footer"><span class="source-label"><Mars v-if="b.sumber_dana === 'cpp' || b.sumber_dana === 'bersama'" aria-hidden="true" /><Venus v-if="b.sumber_dana === 'cpw' || b.sumber_dana === 'bersama'" aria-hidden="true" />{{ sumberDanaOptions[b.sumber_dana] || 'CPP' }}</span><div><button class="icon-action" aria-label="Salin anggaran" @click="openCopy(b)"><Copy /></button><button class="icon-action" aria-label="Edit anggaran" @click="openEdit(b)"><Pencil /></button><button class="icon-action danger" aria-label="Hapus anggaran" @click="confirmDelete(b)"><Trash2 /></button></div></div>
+        <div class="record-footer"><button type="button" class="drag-handle" :disabled="!canDragRows" aria-label="Geser urutan anggaran" @touchstart.stop="startDrag(b, index, null)"><GripVertical aria-hidden="true" /> Urutan {{ b.no }}</button><span class="source-label"><Mars v-if="b.sumber_dana === 'cpp' || b.sumber_dana === 'bersama'" aria-hidden="true" /><Venus v-if="b.sumber_dana === 'cpw' || b.sumber_dana === 'bersama'" aria-hidden="true" />{{ sumberDanaOptions[b.sumber_dana] || 'CPP' }}</span><div><button class="icon-action" aria-label="Salin anggaran" @click="openCopy(b)"><Copy /></button><button class="icon-action" aria-label="Edit anggaran" @click="openEdit(b)"><Pencil /></button><button class="icon-action danger" aria-label="Hapus anggaran" @click="confirmDelete(b)"><Trash2 /></button></div></div>
       </article>
       <div v-if="!filteredBudgets.length" class="empty-card"><WalletCards /><h2>{{ hasFilters ? 'Anggaran tidak ditemukan' : 'Belum ada anggaran' }}</h2><p>{{ hasFilters ? 'Tidak ada data yang sesuai dengan pencarian atau filter.' : 'Mulai catat kebutuhan dan perkiraan biaya pernikahan.' }}</p><button :class="hasFilters ? 'secondary-action' : 'primary-action'" @click="hasFilters ? resetFilters() : openCreate()"><component :is="hasFilters ? X : Plus" />{{ hasFilters ? 'Reset Filter' : 'Tambah Anggaran Pertama' }}</button></div>
     </section>
