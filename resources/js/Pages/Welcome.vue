@@ -118,10 +118,10 @@ const faqs = [
                         <h1>Siapkan Pernikahanmu <em>Tanpa Bikin Pusing</em></h1>
                         <p>Atur budget, persiapan, seserahan, dokumen, dan daftar undangan dalam satu tempat. Lebih rapi, lebih terarah, dan bisa dipantau bersama.</p>
                         <div class="hero-actions">
-                            <a href="/budget-estimator" class="button button-primary button-large">
+                            <a :href="route('login')" class="button button-primary button-large">Atur Pernikahanmu Sekarang</a>
+                            <a href="/budget-estimator" class="button button-ghost button-large">
                                 Hitung Budget Nikah Gratis <ArrowRight aria-hidden="true" />
                             </a>
-                            <a :href="route('login')" class="button button-ghost button-large">Atur Pernikahanmu Sekarang</a>
                         </div>
                         <div class="hero-note"><CheckCircle2 aria-hidden="true" /> Coba estimator tanpa perlu membuat akun</div>
                         <div class="feature-marquee" aria-label="Fitur Ruang Pasangan">
